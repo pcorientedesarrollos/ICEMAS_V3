@@ -1,0 +1,176 @@
+<div class="space-y-6">
+  @if (loading()) {
+  <div class="flex items-center justify-center p-12">
+    <svg class="animate-spin h-8 w-8 text-primary-600" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+      </path>
+    </svg>
+  </div>
+  } @else if (servicio()) {
+  <!-- Header -->
+  <div class="flex justify-between items-center px-1">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Servicio #{{ servicio()?.folio }}</h1>
+      <p class="text-gray-500 text-sm mt-1">Orden de servicio</p>
+    </div>
+    <div class="flex gap-3">
+      <button (click)="navigateBack()"
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors">
+        Volver
+      </button>
+      <button (click)="generatePdf()" [disabled]="generatingPdf()"
+        class="px-4 py-2 text-sm font-medium text-white bg-cyan-600 rounded-lg hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-colors disabled:opacity-50 flex items-center gap-2">
+        @if (generatingPdf()) {
+        <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+          </path>
+        </svg>
+        <span>Generando...</span>
+        } @else {
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span>Descargar PDF</span>
+        }
+      </button>
+      <button (click)="navigateToEdit()"
+        class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-colors">
+        Editar Servicio
+      </button>
+    </div>
+  </div>
+
+  <!-- Estado Badge -->
+  <div class="flex items-center gap-3">
+    @if (servicio()?.estado === 'Pendiente') {
+    <span class="px-3 py-1.5 text-sm font-medium rounded-full bg-yellow-100 text-yellow-800">
+      Pendiente
+    </span>
+    } @else if (servicio()?.estado === 'En Proceso') {
+    <span class="px-3 py-1.5 text-sm font-medium rounded-full bg-primary-100 text-primary-800">
+      En Proceso
+    </span>
+    } @else if (servicio()?.estado === 'Completado') {
+    <span class="px-3 py-1.5 text-sm font-medium rounded-full bg-green-100 text-green-800">
+      Completado
+    </span>
+    } @else if (servicio()?.estado === 'Cancelado') {
+    <span class="px-3 py-1.5 text-sm font-medium rounded-full bg-red-100 text-red-800">
+      Cancelado
+    </span>
+    }
+    <span class="text-sm text-gray-500">
+      {{ formatDate(servicio()?.fechaServicio) }}
+    </span>
+  </div>
+
+  <!-- Información General -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Información General</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div>
+        <p class="text-sm font-medium text-gray-500 mb-1">Folio</p>
+        <p class="text-base text-gray-900">{{ servicio()?.folio }}</p>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-gray-500 mb-1">Fecha de Servicio</p>
+        <p class="text-base text-gray-900">{{ formatDate(servicio()?.fechaServicio) }}</p>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-gray-500 mb-1">Estado</p>
+        <p class="text-base text-gray-900">{{ servicio()?.estado }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cliente y Ubicación -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Cliente y Ubicación</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <p class="text-sm font-medium text-gray-500 mb-1">Cliente</p>
+        <p class="text-base text-gray-900">{{ servicio()?.cliente?.nombre }}</p>
+        <p class="text-sm text-gray-600">{{ servicio()?.cliente?.empresa }}</p>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-gray-500 mb-1">Sucursal</p>
+        <p class="text-base text-gray-900">{{ servicio()?.sucursal?.nombre }}</p>
+        @if (servicio()?.sucursal?.direccion) {
+        <p class="text-sm text-gray-600">{{ servicio()?.sucursal?.direccion }}</p>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Equipo y Técnico -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Equipo y Técnico</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <p class="text-sm font-medium text-gray-500 mb-1">Equipo</p>
+        <p class="text-base text-gray-900">{{ servicio()?.equipo?.nombre }}</p>
+        <p class="text-sm text-gray-600">Modelo: {{ servicio()?.equipo?.modelo }}</p>
+        @if (servicio()?.equipo?.serie) {
+        <p class="text-sm text-gray-600">Serie: {{ servicio()?.equipo?.serie }}</p>
+        }
+      </div>
+      <div>
+        <p class="text-sm font-medium text-gray-500 mb-1">Técnico Asignado</p>
+        <p class="text-base text-gray-900">{{ servicio()?.tecnico?.nombre }}</p>
+        @if (servicio()?.tecnico?.telefono) {
+        <p class="text-sm text-gray-600">{{ servicio()?.tecnico?.telefono }}</p>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Descripción y Trabajo Realizado -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Detalles del Servicio</h2>
+    <div class="space-y-4">
+      @if (servicio()?.descripcion) {
+      <div>
+        <p class="text-sm font-medium text-gray-500 mb-2">Descripción del Problema</p>
+        <p class="text-base text-gray-700">{{ servicio()?.descripcion }}</p>
+      </div>
+      }
+      @if (servicio()?.detalleTrabajo) {
+      <div>
+        <p class="text-sm font-medium text-gray-500 mb-2">Trabajo Realizado</p>
+        <p class="text-base text-gray-700 whitespace-pre-line">{{ servicio()?.detalleTrabajo }}</p>
+      </div>
+      }
+    </div>
+  </div>
+
+  <!-- Firma (si existe) -->
+  @if (servicio()?.firma) {
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Firma del Cliente</h2>
+    <div class="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+      <svg class="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p class="text-base font-medium text-green-800">Firmado por el cliente</p>
+    </div>
+  </div>
+  } @else {
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Firma del Cliente</h2>
+    <div class="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+      <svg class="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p class="text-base font-medium text-gray-600">El cliente no ha firmado</p>
+    </div>
+  </div>
+  }
+  }
+</div>

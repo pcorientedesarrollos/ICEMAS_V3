@@ -5,10 +5,10 @@ export type ModalSize = 'sm' | 'md' | 'lg' | 'xl';
 export type ModalType = 'info' | 'success' | 'warning' | 'danger';
 
 @Component({
-    selector: 'app-modal',
-    standalone: true,
-    imports: [CommonModule],
-    template: `
+  selector: 'app-modal',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
     @if (isOpen()) {
       <!-- Backdrop -->
       <div 
@@ -70,8 +70,15 @@ export type ModalType = 'info' | 'success' | 'warning' | 'danger';
                     (click)="onConfirm()"
                     [disabled]="confirmDisabled()"
                     [class]="confirmButtonClass()"
+                    class="flex items-center gap-2"
                   >
-                    {{ confirmButtonText() }}
+                    @if (confirmDisabled()) {
+                      <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    }
+                    <span>{{ confirmButtonText() }}</span>
                   </button>
                 }
               </div>
@@ -83,82 +90,82 @@ export type ModalType = 'info' | 'success' | 'warning' | 'danger';
   `
 })
 export class ModalComponent {
-    // Inputs
-    isOpen = input<boolean>(false);
-    title = input<string>('');
-    size = input<ModalSize>('md');
-    type = input<ModalType | undefined>(undefined);
+  // Inputs
+  isOpen = input<boolean>(false);
+  title = input<string>('');
+  size = input<ModalSize>('md');
+  type = input<ModalType | undefined>(undefined);
 
-    showCloseButton = input<boolean>(true);
-    showFooter = input<boolean>(true);
-    showCancelButton = input<boolean>(true);
-    showConfirmButton = input<boolean>(true);
+  showCloseButton = input<boolean>(true);
+  showFooter = input<boolean>(true);
+  showCancelButton = input<boolean>(true);
+  showConfirmButton = input<boolean>(true);
 
-    cancelButtonText = input<string>('Cancelar');
-    confirmButtonText = input<string>('Confirmar');
-    confirmDisabled = input<boolean>(false);
-    closeOnBackdrop = input<boolean>(true);
+  cancelButtonText = input<string>('Cancelar');
+  confirmButtonText = input<string>('Confirmar');
+  confirmDisabled = input<boolean>(false);
+  closeOnBackdrop = input<boolean>(true);
 
-    // Outputs
-    closed = output<void>();
-    confirmed = output<void>();
-    cancelled = output<void>();
+  // Outputs
+  closed = output<void>();
+  confirmed = output<void>();
+  cancelled = output<void>();
 
-    modalClasses(): string {
-        const sizeClasses = {
-            sm: 'max-w-sm',
-            md: 'max-w-md',
-            lg: 'max-w-2xl',
-            xl: 'max-w-4xl'
-        };
-        return `w-full ${sizeClasses[this.size()]}`;
+  modalClasses(): string {
+    const sizeClasses = {
+      sm: 'max-w-sm',
+      md: 'max-w-md',
+      lg: 'max-w-2xl',
+      xl: 'max-w-4xl'
+    };
+    return `w-full ${sizeClasses[this.size()]}`;
+  }
+
+  iconWrapperClass(): string {
+    const classes = {
+      info: 'bg-primary-500',
+      success: 'bg-green-500',
+      warning: 'bg-yellow-500',
+      danger: 'bg-red-500'
+    };
+    return `w-10 h-10 rounded-full flex items-center justify-center ${classes[this.type()!]}`;
+  }
+
+  confirmButtonClass(): string {
+    const baseClasses = 'px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+
+    if (this.type() === 'danger') {
+      return `${baseClasses} bg-red-600 text-white hover:bg-red-700`;
     }
-
-    iconWrapperClass(): string {
-        const classes = {
-            info: 'bg-blue-500',
-            success: 'bg-green-500',
-            warning: 'bg-yellow-500',
-            danger: 'bg-red-500'
-        };
-        return `w-10 h-10 rounded-full flex items-center justify-center ${classes[this.type()!]}`;
+    if (this.type() === 'warning') {
+      return `${baseClasses} bg-yellow-600 text-white hover:bg-yellow-700`;
     }
-
-    confirmButtonClass(): string {
-        const baseClasses = 'px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
-
-        if (this.type() === 'danger') {
-            return `${baseClasses} bg-red-600 text-white hover:bg-red-700`;
-        }
-        if (this.type() === 'warning') {
-            return `${baseClasses} bg-yellow-600 text-white hover:bg-yellow-700`;
-        }
-        if (this.type() === 'success') {
-            return `${baseClasses} bg-green-600 text-white hover:bg-green-700`;
-        }
-        return `${baseClasses} bg-primary-600 text-white hover:bg-primary-700`;
+    if (this.type() === 'success') {
+      return `${baseClasses} bg-green-600 text-white hover:bg-green-700`;
     }
+    return `${baseClasses} bg-primary-600 text-white hover:bg-primary-700`;
+  }
 
-    getIconPath(): string {
-        const icons = {
-            info: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-            success: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
-            warning: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z',
-            danger: 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
-        };
-        return icons[this.type()!] || icons.info;
-    }
+  getIconPath(): string {
+    const icons = {
+      info: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+      success: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+      warning: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z',
+      danger: 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+    };
+    return icons[this.type()!] || icons.info;
+  }
 
-    close(): void {
-        this.closed.emit();
-    }
+  close(): void {
+    this.closed.emit();
+  }
 
-    onConfirm(): void {
-        this.confirmed.emit();
-    }
+  onConfirm(): void {
+    this.confirmed.emit();
+  }
 
-    onCancel(): void {
-        this.cancelled.emit();
-        this.close();
-    }
+  onCancel(): void {
+    this.cancelled.emit();
+    this.close();
+  }
 }

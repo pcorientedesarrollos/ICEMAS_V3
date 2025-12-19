@@ -1,81 +1,54 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { EquiposService } from '../equipos.service';
 import { DataTableComponent, DataTableColumn, DataTableAction } from '../../../shared/components/data-table/data-table.component';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { NotificationService } from '../../../core/services/notification.service';
+import { AdvancedFiltersComponent, FilterField, FilterValues } from '../../../shared/components/advanced-filters/advanced-filters.component';
 
 @Component({
   selector: 'app-equipos-list',
   standalone: true,
-  imports: [CommonModule, DataTableComponent, ModalComponent],
-  template: `
-    <div class="space-y-6">
-      <!-- Page Title -->
-      <div class="flex justify-between items-center px-1">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Equipos</h1>
-          <p class="text-gray-500 text-sm mt-1">Gestión de equipos e inventario</p>
-        </div>
-      </div>
-
-      <!-- Table with Integrated Header -->
-      <app-data-table
-        [data]="equipos()"
-        [columns]="columns"
-        [actions]="actions"
-        [loading]="loading()"
-        [searchable]="true"
-      >
-        <!-- Injected Action Button -->
-         <button
-          header-actions
-          (click)="navigateToNew()"
-          class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors shadow-sm"
-        >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Nuevo Equipo</span>
-        </button>
-      </app-data-table>
-
-      <!-- Delete Confirmation Modal -->
-      <app-modal
-        [isOpen]="showDeleteModal()"
-        title="Confirmar Eliminación"
-        type="danger"
-        confirmButtonText="Eliminar"
-        (closed)="showDeleteModal.set(false)"
-        (confirmed)="confirmDelete()"
-        (cancelled)="showDeleteModal.set(false)"
-      >
-        <p class="text-gray-600">
-          ¿Estás seguro que deseas eliminar el equipo <strong>{{ selectedEquipo()?.nombre }}</strong>?
-          Esta acción no se puede deshacer.
-        </p>
-      </app-modal>
-    </div>
-  `
+  imports: [CommonModule, DataTableComponent, ModalComponent, AdvancedFiltersComponent],
+  templateUrl: './equipos-list.component.html',
+  styleUrl: './equipos-list.component.css'
 })
-export class EquiposListComponent {
+export class EquiposListComponent implements OnInit {
   private equiposService = inject(EquiposService);
   private router = inject(Router);
   private notificationService = inject(NotificationService);
 
   equipos = signal<any[]>([]);
+  allEquipos = signal<any[]>([]); // Store all data for client-side filtering
   loading = signal(true);
   showDeleteModal = signal(false);
   selectedEquipo = signal<any>(null);
 
+  // Filter configuration
+  filterFields: FilterField[] = [
+    { key: 'nombre', label: 'Nombre', type: 'text', placeholder: 'Buscar por nombre...' },
+    { key: 'modelo', label: 'Modelo', type: 'text', placeholder: 'Buscar por modelo...' },
+    { key: 'serie', label: 'No. Serie', type: 'text', placeholder: 'Buscar por serie...' },
+    {
+      key: 'estado',
+      label: 'Estado',
+      type: 'select',
+      options: [
+        { value: '1', label: 'Activo' },
+        { value: '0', label: 'Inactivo' }
+      ]
+    }
+  ];
+
   columns: DataTableColumn[] = [
-    { key: 'idEquipo', label: 'ID', sortable: true },
+    { key: 'idEquipo', label: 'ID', sortable: true, hideOnMobile: true, width: 'w-1 whitespace-nowrap' },
     { key: 'nombre', label: 'Nombre', sortable: true },
-    { key: 'modelo', label: 'Modelo', sortable: true },
-    { key: 'marca.nombre', label: 'Marca', sortable: false },
-    { key: 'serie', label: 'Serie', sortable: false },
-    { key: 'estado', label: 'Estado', sortable: true, format: (value) => value === 1 ? 'Activo' : 'Inactivo' },
+    { key: 'modelo', label: 'Modelo', sortable: true, hideOnMobile: true, width: 'whitespace-nowrap' },
+    { key: 'serie', label: 'Serie', sortable: false, hideOnMobile: true, width: 'whitespace-nowrap' },
+    { key: 'createdAt', label: 'Creado', sortable: true, hideOnMobile: true, format: (value) => value ? new Date(value).toLocaleDateString('es-MX') + ' ' + new Date(value).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : 'N/A', width: 'whitespace-nowrap' },
+    { key: 'updatedAt', label: 'Modificado', sortable: true, hideOnMobile: true, format: (value) => value ? new Date(value).toLocaleDateString('es-MX') + ' ' + new Date(value).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : 'N/A', width: 'whitespace-nowrap' },
+    { key: 'estado', label: 'Estado', sortable: true, type: 'badge', format: (value) => value === 1 ? 'Activo' : 'Inactivo', width: 'w-1 whitespace-nowrap' }
   ];
 
   actions: DataTableAction[] = [
@@ -104,10 +77,11 @@ export class EquiposListComponent {
     this.loading.set(true);
     this.equiposService.getAll().subscribe({
       next: (data) => {
-        this.equipos.set(data);
+        this.allEquipos.set(data); // Store all data
+        this.equipos.set(data); // Initially show all
         this.loading.set(false);
       },
-      error: (error) => {
+      error: () => {
         this.notificationService.error('Error al cargar equipos');
         this.loading.set(false);
       }
@@ -133,9 +107,46 @@ export class EquiposListComponent {
         this.showDeleteModal.set(false);
         this.loadEquipos();
       },
-      error: (error) => {
+      error: () => {
         this.notificationService.error('Error al eliminar equipo');
+        this.showDeleteModal.set(false);
       }
     });
+  }
+
+  // Filter methods
+  onFiltersChanged(filters: FilterValues): void {
+    let filtered = [...this.allEquipos()];
+
+    // Apply filters
+    Object.keys(filters).forEach(key => {
+      const value = filters[key];
+      if (value !== null && value !== undefined && value !== '') {
+        filtered = filtered.filter(equipo => {
+          switch (key) {
+            case 'nombre':
+              return equipo.nombre?.toLowerCase().includes(value.toLowerCase());
+            case 'modelo':
+              // Handle null/undefined modelo values
+              if (!equipo.modelo) return false;
+              return equipo.modelo.toLowerCase().includes(value.toLowerCase());
+            case 'serie':
+              // Handle null/undefined serie values
+              if (!equipo.serie) return false;
+              return equipo.serie.toLowerCase().includes(value.toLowerCase());
+            case 'estado':
+              return equipo.estado?.toString() === value.toString();
+            default:
+              return true;
+          }
+        });
+      }
+    });
+
+    this.equipos.set(filtered);
+  }
+
+  onFiltersCleared(): void {
+    this.equipos.set([...this.allEquipos()]);
   }
 }

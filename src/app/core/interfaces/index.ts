@@ -146,8 +146,9 @@ export interface CreateServicioDto {
 
 // Autocomplete response
 export interface AutocompleteOption {
-    value: number;
+    id: number | string;
     label: string;
+    subtitle?: string;
 }
 
 // Table pagination

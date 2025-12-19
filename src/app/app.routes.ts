@@ -28,6 +28,10 @@ export const routes: Routes = [
                 loadChildren: () => import('./features/clientes/clientes.routes').then(m => m.CLIENTES_ROUTES)
             },
             {
+                path: 'sucursales',
+                loadChildren: () => import('./features/clientes/sucursales/sucursales.routes').then(m => m.SUCURSALES_ROUTES)
+            },
+            {
                 path: 'equipos',
                 loadChildren: () => import('./features/equipos/equipos.routes').then(m => m.EQUIPOS_ROUTES)
             },
@@ -38,6 +42,18 @@ export const routes: Routes = [
             {
                 path: 'tecnicos',
                 loadChildren: () => import('./features/tecnicos/tecnicos.routes').then(m => m.TECNICOS_ROUTES)
+            },
+            {
+                path: 'catalogos/tipos-equipo',
+                loadChildren: () => import('./features/tipos-equipo/tipos-equipo.routes').then(m => m.tiposEquipoRoutes)
+            },
+            {
+                path: 'catalogos/marcas',
+                loadChildren: () => import('./features/marcas/marcas.routes').then(m => m.marcasRoutes)
+            },
+            {
+                path: 'catalogos/tipos-servicio',
+                loadChildren: () => import('./features/tipos-servicio/tipos-servicio.routes').then(m => m.tiposServicioRoutes)
             },
             {
                 path: 'reportes',

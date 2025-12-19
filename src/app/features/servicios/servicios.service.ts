@@ -60,4 +60,23 @@ export class ServiciosService {
     getTipos(): Observable<any[]> {
         return this.api.get<any[]>('servicios/tipos');
     }
+
+    checkFolio(folio: string): Observable<{ exists: boolean }> {
+        return this.api.get<{ exists: boolean }>('servicios/check-folio', { folio });
+    }
+
+    uploadPhoto(servicioId: number, file: File, tipo: string): Observable<any> {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('tipo', tipo);
+        return this.api.postFormData(`servicios/${servicioId}/fotos`, formData);
+    }
+
+    deletePhoto(photoId: number): Observable<any> {
+        return this.api.delete(`servicios/fotos/${photoId}`);
+    }
+
+    getPhotos(servicioId: number): Observable<any[]> {
+        return this.api.get<any[]>(`servicios/${servicioId}/fotos`);
+    }
 }

@@ -29,4 +29,8 @@ export class ApiService {
     patch<T>(endpoint: string, data: any): Observable<T> {
         return this.http.patch<T>(`${this.baseUrl}/${endpoint}`, data);
     }
+
+    postFormData<T>(endpoint: string, formData: FormData): Observable<T> {
+        return this.http.post<T>(`${this.baseUrl}/${endpoint}`, formData);
+    }
 }

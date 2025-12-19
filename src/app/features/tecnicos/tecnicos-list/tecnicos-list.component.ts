@@ -5,59 +5,14 @@ import { TecnicosService } from '../tecnicos.service';
 import { DataTableComponent, DataTableColumn, DataTableAction } from '../../../shared/components/data-table/data-table.component';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { NotificationService } from '../../../core/services/notification.service';
+import { AutocompleteInputComponent, AutocompleteOption } from '../../../shared/components/autocomplete-input/autocomplete-input.component';
 
 @Component({
   selector: 'app-tecnicos-list',
   standalone: true,
-  imports: [CommonModule, DataTableComponent, ModalComponent],
-  template: `
-    <div class="space-y-6">
-      <!-- Page Title -->
-      <div class="flex justify-between items-center px-1">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Técnicos</h1>
-          <p class="text-gray-500 text-sm mt-1">Gestión de personal técnico</p>
-        </div>
-      </div>
-
-      <!-- Table with Integrated Header -->
-      <app-data-table
-        [data]="tecnicos()"
-        [columns]="columns"
-        [actions]="actions"
-        [loading]="loading()"
-        [searchable]="true"
-      >
-        <!-- Injected Action Button -->
-         <button
-          header-actions
-          (click)="navigateToNew()"
-          class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors shadow-sm"
-        >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Nuevo Técnico</span>
-        </button>
-      </app-data-table>
-
-      <!-- Delete Confirmation Modal -->
-      <app-modal
-        [isOpen]="showDeleteModal()"
-        title="Confirmar Eliminación"
-        type="danger"
-        confirmButtonText="Eliminar"
-        (closed)="showDeleteModal.set(false)"
-        (confirmed)="confirmDelete()"
-        (cancelled)="showDeleteModal.set(false)"
-      >
-        <p class="text-gray-600">
-          ¿Estás seguro que deseas eliminar al técnico <strong>{{ selectedTecnico()?.nombre }}</strong>?
-          Esta acción no se puede deshacer.
-        </p>
-      </app-modal>
-    </div>
-  `
+  imports: [CommonModule, DataTableComponent, ModalComponent, AutocompleteInputComponent],
+  templateUrl: './tecnicos-list.component.html',
+  styleUrl: './tecnicos-list.component.css',
 })
 export class TecnicosListComponent {
   private tecnicosService = inject(TecnicosService);
@@ -69,17 +24,23 @@ export class TecnicosListComponent {
   showDeleteModal = signal(false);
   selectedTecnico = signal<any>(null);
 
+  // Autocomplete state
+  autocompleteOptions = signal<AutocompleteOption[]>([]);
+  autocompleteLoading = signal(false);
+
   columns: DataTableColumn[] = [
-    { key: 'idTecnico', label: 'ID', sortable: true },
+    { key: 'idTecnico', label: 'ID', sortable: true, width: 'w-1 whitespace-nowrap' },
     { key: 'nombre', label: 'Nombre', sortable: true },
     { key: 'email', label: 'Email', sortable: true },
-    { key: 'telefono', label: 'Teléfono', sortable: false },
+    { key: 'telefono', label: 'Teléfono', sortable: false, width: 'whitespace-nowrap' },
     { key: 'especialidad', label: 'Especialidad', sortable: true },
     {
       key: 'activo',
       label: 'Estado',
       sortable: true,
-      format: (value) => value === 1 ? '✓ Activo' : '✗ Inactivo'
+      type: 'badge',
+      format: (value) => value === 1 ? 'Activo' : 'Inactivo',
+      width: 'w-1 whitespace-nowrap'
     },
   ];
 
@@ -142,5 +103,28 @@ export class TecnicosListComponent {
         this.notificationService.error('Error al eliminar técnico');
       }
     });
+  }
+
+  // Autocomplete methods
+  onAutocompleteSearch(query: string): void {
+    this.autocompleteLoading.set(true);
+    this.tecnicosService.autocomplete(query).subscribe({
+      next: (results) => {
+        this.autocompleteOptions.set(results);
+        this.autocompleteLoading.set(false);
+      },
+      error: () => {
+        this.autocompleteOptions.set([]);
+        this.autocompleteLoading.set(false);
+      }
+    });
+  }
+
+  onAutocompleteSelect(option: AutocompleteOption): void {
+    this.router.navigate(['/tecnicos', option.id]);
+  }
+
+  onAutocompleteClear(): void {
+    this.autocompleteOptions.set([]);
   }
 }

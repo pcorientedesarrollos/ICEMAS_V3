@@ -36,4 +36,22 @@ export class EquiposService {
     getServicios(id: number): Observable<any[]> {
         return this.api.get<any[]>(`equipos/${id}/servicios`);
     }
+
+    // Marcas
+    getMarcas(): Observable<any[]> {
+        return this.api.get<any[]>('equipos/marcas');
+    }
+
+    // Tipos
+    getTipos(): Observable<any[]> {
+        return this.api.get<any[]>('equipos/tipos');
+    }
+
+    createTipo(data: { nombre: string }): Observable<any> {
+        return this.api.post<any>('equipos/tipos', data);
+    }
+
+    autocomplete(term: string): Observable<any[]> {
+        return this.api.get<any[]>('equipos/autocomplete/nombre', { term });
+    }
 }

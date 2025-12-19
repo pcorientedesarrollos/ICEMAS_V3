@@ -33,6 +33,7 @@
     "@angular/ssr": "^20.3.2",
     "@tailwindcss/vite": "^4.1.18",
     "express": "^5.1.0",
+    "jspdf": "^3.0.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

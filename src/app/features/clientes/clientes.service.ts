@@ -9,8 +9,9 @@ import { Cliente, CreateClienteDto, AutocompleteOption } from '../../core/interf
 export class ClientesService {
     private api = inject(ApiService);
 
-    getAll(search: string): Observable<Cliente[]> {
-        return this.api.get<Cliente[]>('clientes', { search });
+    getAll(search?: string): Observable<Cliente[]> {
+        const params = search ? { search } : {};
+        return this.api.get<Cliente[]>('clientes', params);
     }
 
     getOne(id: number): Observable<Cliente> {
@@ -40,4 +41,13 @@ export class ClientesService {
     getSucursales(id: number): Observable<any[]> {
         return this.api.get<any[]>(`clientes/${id}/sucursales`);
     }
+
+    createSucursal(idCliente: number, data: { nombre: string; direccion?: string }): Observable<any> {
+        return this.api.post<any>('sucursales', { ...data, idCliente });
+    }
+
+    getServicios(id: number): Observable<any[]> {
+        return this.api.get<any[]>(`clientes/${id}/servicios`);
+    }
 }
+

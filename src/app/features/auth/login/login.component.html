@@ -1,0 +1,68 @@
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 px-4">
+  <div class="max-w-md w-full">
+    <!-- Logo & Title -->
+    <div class="text-center mb-8">
+      <div class="inline-block mb-4">
+        <img src="/image/Logo_icemas_circular.png" alt="ICEMAS Logo" class="w-48 h-48 object-contain mx-auto" />
+      </div>
+    </div>
+
+    <!-- Login Card -->
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-6">Iniciar Sesión</h2>
+
+      <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+        <!-- Email -->
+        <div class="mb-5">
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+            Correo Electrónico
+          </label>
+          <input type="email" id="email" name="email" [(ngModel)]="credentials().email" required email
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+            placeholder="usuario@ejemplo.com" [disabled]="loading()" />
+        </div>
+
+        <!-- Password -->
+        <div class="mb-6">
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+            Contraseña
+          </label>
+          <input [type]="showPassword() ? 'text' : 'password'" id="password" name="password"
+            [(ngModel)]="credentials().password" required minlength="6"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+            placeholder="••••••••" [disabled]="loading()" />
+          <button type="button" (click)="togglePassword()"
+            class="text-sm text-primary-600 hover:text-primary-700 mt-2 focus:outline-none">
+            {{ showPassword() ? 'Ocultar' : 'Mostrar' }} contraseña
+          </button>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" [disabled]="!loginForm.form.valid || loading()"
+          class="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+          @if (loading()) {
+          <span class="flex items-center justify-center">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+              </path>
+            </svg>
+            Iniciando sesión...
+          </span>
+          } @else {
+          Iniciar Sesión
+          }
+        </button>
+      </form>
+
+      <!-- Register Link -->
+
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center mt-6 text-sm text-gray-500">
+      © 2024 ICEMAS. Todos los derechos reservados.
+    </div>
+  </div>
+</div>

@@ -5,60 +5,15 @@ import { ClientesService } from '../clientes.service';
 import { DataTableComponent, DataTableColumn, DataTableAction } from '../../../shared/components/data-table/data-table.component';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { NotificationService } from '../../../core/services/notification.service';
+import { AutocompleteInputComponent } from '../../../shared/components/autocomplete-input/autocomplete-input.component';
+import type { AutocompleteOption } from '../../../core/interfaces';
 
 @Component({
   selector: 'app-clientes-list',
   standalone: true,
-  imports: [CommonModule, DataTableComponent, ModalComponent],
-  template: `
-    <div class="space-y-6">
-      <!-- Page Title -->
-      <div class="flex justify-between items-center px-1">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Clientes</h1>
-          <p class="text-gray-500 text-sm mt-1">Gestión de clientes y empresas</p>
-        </div>
-        <!-- Button moved to table -->
-      </div>
-
-      <!-- Table with Integrated Header -->
-      <app-data-table
-        [data]="clientes()"
-        [columns]="columns"
-        [actions]="actions"
-        [loading]="loading()"
-        [searchable]="true"
-      >
-        <!-- Injected Action Button -->
-        <button
-          header-actions
-          (click)="navigateToNew()"
-          class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors shadow-sm"
-        >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Nuevo Cliente</span>
-        </button>
-      </app-data-table>
-
-      <!-- Delete Confirmation Modal -->
-      <app-modal
-        [isOpen]="showDeleteModal()"
-        title="Confirmar Eliminación"
-        type="danger"
-        confirmButtonText="Eliminar"
-        (closed)="showDeleteModal.set(false)"
-        (confirmed)="confirmDelete()"
-        (cancelled)="showDeleteModal.set(false)"
-      >
-        <p class="text-gray-600">
-          ¿Estás seguro que deseas eliminar el cliente <strong>{{ selectedCliente()?.nombre }}</strong>?
-          Esta acción no se puede deshacer.
-        </p>
-      </app-modal>
-    </div>
-  `
+  imports: [CommonModule, DataTableComponent, ModalComponent, AutocompleteInputComponent],
+  templateUrl: './clientes-list.component.html',
+  styleUrl: './clientes-list.component.css'
 })
 export class ClientesListComponent {
   private clientesService = inject(ClientesService);
@@ -70,11 +25,24 @@ export class ClientesListComponent {
   showDeleteModal = signal(false);
   selectedCliente = signal<any>(null);
 
+  // Autocomplete state
+  autocompleteOptions = signal<AutocompleteOption[]>([]);
+  autocompleteLoading = signal(false);
+
   columns: DataTableColumn[] = [
-    { key: 'idCliente', label: 'ID', sortable: true },
+    { key: 'idCliente', label: 'ID', sortable: true, width: 'w-1 whitespace-nowrap' },
     { key: 'nombre', label: 'Nombre', sortable: true },
     { key: 'empresa', label: 'Empresa', sortable: true },
-    { key: 'telefono', label: 'Teléfono', sortable: false },
+    { key: 'telefono', label: 'Teléfono', sortable: false, width: 'whitespace-nowrap' },
+    {
+      key: 'sucursales',
+      label: 'Sucursales',
+      type: 'button',
+      buttonText: 'Ver Sucursales',
+      width: 'w-1 whitespace-nowrap',
+      action: (row) => this.router.navigate(['/clientes', row.idCliente, 'sucursales']),
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72m-13.5 8.65h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .415.336.75.75.75Z" /></svg>`
+    }
   ];
 
   actions: DataTableAction[] = [
@@ -101,7 +69,7 @@ export class ClientesListComponent {
 
   loadClientes(): void {
     this.loading.set(true);
-    this.clientesService.getAll('').subscribe({
+    this.clientesService.getAll().subscribe({
       next: (data) => {
         this.clientes.set(data);
         this.loading.set(false);
@@ -136,5 +104,28 @@ export class ClientesListComponent {
         this.notificationService.error('Error al eliminar cliente');
       }
     });
+  }
+
+  // Autocomplete methods
+  onAutocompleteSearch(query: string): void {
+    this.autocompleteLoading.set(true);
+    this.clientesService.autocomplete(query).subscribe({
+      next: (results) => {
+        this.autocompleteOptions.set(results);
+        this.autocompleteLoading.set(false);
+      },
+      error: () => {
+        this.autocompleteOptions.set([]);
+        this.autocompleteLoading.set(false);
+      }
+    });
+  }
+
+  onAutocompleteSelect(option: AutocompleteOption): void {
+    this.router.navigate(['/clientes', option.id]);
+  }
+
+  onAutocompleteClear(): void {
+    this.autocompleteOptions.set([]);
   }
 }

@@ -1,0 +1,89 @@
+<div class="space-y-6">
+      @if (loading()) {
+        <div class="flex items-center justify-center p-12">
+          <svg class="animate-spin h-8 w-8 text-primary-600" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+      } @else if (cliente()) {
+        <!-- Header -->
+        <div class="flex justify-between items-center px-1">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">{{ cliente()?.nombre }}</h1>
+            <p class="text-gray-500 text-sm mt-1">{{ cliente()?.empresa }}</p>
+          </div>
+          <div class="flex gap-3">
+            <button
+              (click)="navigateBack()"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors"
+            >
+              Volver
+            </button>
+            <button
+              (click)="navigateToEdit()"
+              class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-colors"
+            >
+              Editar Cliente
+            </button>
+          </div>
+        </div>
+
+        <!-- Cliente Info Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">Información del Cliente</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <p class="text-sm font-medium text-gray-500 mb-1">Nombre</p>
+              <p class="text-base text-gray-900">{{ cliente()?.nombre }}</p>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500 mb-1">Empresa</p>
+              <p class="text-base text-gray-900">{{ cliente()?.empresa }}</p>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500 mb-1">Teléfono</p>
+              <p class="text-base text-gray-900">{{ cliente()?.telefono || 'No registrado' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sucursales Section -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="p-6 border-b border-gray-200">
+            <div class="flex justify-between items-center">
+              <h2 class="text-lg font-semibold text-gray-900">Sucursales</h2>
+              <button
+                (click)="navigateToNewSucursal()"
+                class="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-colors"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Nueva Sucursal</span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="p-6">
+            @if (sucursales().length === 0) {
+              <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <p class="mt-4 text-sm text-gray-500">No hay sucursales registradas</p>
+                <p class="text-xs text-gray-400 mt-1">Crea la primera sucursal para este cliente</p>
+              </div>
+            } @else {
+              <app-data-table
+                [data]="sucursales()"
+                [columns]="sucursalesColumns"
+                [actions]="sucursalesActions"
+                [loading]="loadingSucursales()"
+                [searchable]="true"
+              />
+            }
+          </div>
+        </div>
+      }
+    </div>

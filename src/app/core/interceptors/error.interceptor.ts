@@ -2,6 +2,7 @@ import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
+import { environment } from '../../../environments/environment.development';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
     const router = inject(Router);
@@ -21,7 +22,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
                 if (error.status === 401) {
                     // Clear auth and redirect to login
                     if (typeof window !== 'undefined') {
-                        localStorage.removeItem('icemas_access_token');
+                        localStorage.removeItem(environment.jwtTokenKey);
                     }
                     router.navigate(['/login']);
                 }

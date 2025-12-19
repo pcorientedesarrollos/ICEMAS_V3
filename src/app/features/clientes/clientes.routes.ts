@@ -16,5 +16,9 @@ export const CLIENTES_ROUTES: Routes = [
     {
         path: ':id/editar',
         loadComponent: () => import('./cliente-form/cliente-form.component').then(m => m.ClienteFormComponent)
+    },
+    {
+        path: ':id/sucursales',
+        loadChildren: () => import('./sucursales/sucursales.routes').then(m => m.SUCURSALES_ROUTES)
     }
 ];

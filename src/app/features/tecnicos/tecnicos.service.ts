@@ -36,4 +36,8 @@ export class TecnicosService {
     saveFirma(id: number, firmaBase64: string): Observable<Tecnico> {
         return this.api.post<Tecnico>(`tecnicos/${id}/firma`, { firma: firmaBase64 });
     }
+
+    autocomplete(term: string): Observable<any[]> {
+        return this.api.get<any[]>('tecnicos/autocomplete', { term });
+    }
 }

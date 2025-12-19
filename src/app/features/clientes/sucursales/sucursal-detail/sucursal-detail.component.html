@@ -1,0 +1,162 @@
+<div class="space-y-6">
+    @if (loading()) {
+    <div class="flex items-center justify-center p-12">
+        <svg class="animate-spin h-8 w-8 text-primary-600" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+        </svg>
+    </div>
+    } @else if (sucursal()) {
+    <!-- Header -->
+    <div class="flex justify-between items-center px-1">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">{{ sucursal()?.nombre }}</h1>
+            <p class="text-gray-500 text-sm mt-1">
+                Sucursal de {{ sucursal()?.cliente?.nombre || 'Cliente no asignado' }}
+            </p>
+        </div>
+        <div class="flex gap-3">
+            <button (click)="navigateBack()"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors">
+                Volver
+            </button>
+            <button (click)="navigateToEdit()"
+                class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-colors">
+                Editar Sucursal
+            </button>
+        </div>
+    </div>
+
+    <!-- Sucursal Info Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Información de la Sucursal</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">Nombre</p>
+                <p class="text-base text-gray-900">{{ sucursal()?.nombre }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">Cliente</p>
+                <p class="text-base text-gray-900">{{ sucursal()?.cliente?.nombre || 'No asignado' }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">Teléfono</p>
+                <p class="text-base text-gray-900">{{ sucursal()?.telefono || 'No registrado' }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">Contacto</p>
+                <p class="text-base text-gray-900">{{ sucursal()?.contacto || 'No registrado' }}</p>
+            </div>
+        </div>
+        @if (sucursal()?.direccion) {
+        <div class="mt-4 pt-4 border-t border-gray-200">
+            <p class="text-sm font-medium text-gray-500 mb-1">Dirección</p>
+            <p class="text-base text-gray-900">{{ sucursal()?.direccion }}</p>
+        </div>
+        }
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+            <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">Equipos</div>
+            <div class="text-2xl font-bold text-primary-600 mt-1">{{ equipos().length }}</div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+            <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Servicios</div>
+            <div class="text-2xl font-bold text-purple-600 mt-1">{{ servicios().length }}</div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+            <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">Completados</div>
+            <div class="text-2xl font-bold text-green-600 mt-1">{{ getCountByEstado('Completado') }}</div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+            <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">Pendientes</div>
+            <div class="text-2xl font-bold text-yellow-600 mt-1">{{ getCountByEstado('Pendiente') }}</div>
+        </div>
+    </div>
+
+    <!-- Tabs Section -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <!-- Tab Headers -->
+        <div class="border-b border-gray-200">
+            <nav class="flex -mb-px">
+                <button (click)="setActiveTab('equipos')" [class]="'px-6 py-4 text-sm font-medium border-b-2 ' + 
+                (activeTab() === 'equipos' 
+                  ? 'border-primary-500 text-primary-600' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')">
+                    Equipos ({{ equipos().length }})
+                </button>
+                <button (click)="setActiveTab('servicios')" [class]="'px-6 py-4 text-sm font-medium border-b-2 ' + 
+                (activeTab() === 'servicios' 
+                  ? 'border-primary-500 text-primary-600' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')">
+                    Servicios ({{ servicios().length }})
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="p-6">
+            <!-- Equipos Tab -->
+            @if (activeTab() === 'equipos') {
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Equipos Asociados</h3>
+                <button (click)="navigateToNewEquipo()"
+                    class="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Nuevo Equipo</span>
+                </button>
+            </div>
+
+            @if (equipos().length === 0) {
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                </svg>
+                <p class="mt-4 text-sm text-gray-500">No hay equipos registrados en esta sucursal</p>
+                <p class="text-xs text-gray-400 mt-1">Agrega el primer equipo para esta sucursal</p>
+            </div>
+            } @else {
+            <app-data-table [data]="equipos()" [columns]="equiposColumns" [actions]="equiposActions"
+                [loading]="loadingEquipos()" [searchable]="true" />
+            }
+            }
+
+            <!-- Servicios Tab -->
+            @if (activeTab() === 'servicios') {
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Servicios Realizados</h3>
+                <button (click)="navigateToNewServicio()"
+                    class="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Nuevo Servicio</span>
+                </button>
+            </div>
+
+            @if (servicios().length === 0) {
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p class="mt-4 text-sm text-gray-500">No hay servicios registrados en esta sucursal</p>
+                <p class="text-xs text-gray-400 mt-1">Los servicios aparecerán aquí cuando se realicen a equipos de esta
+                    sucursal</p>
+            </div>
+            } @else {
+            <app-data-table [data]="servicios()" [columns]="serviciosColumns" [actions]="serviciosActions"
+                [loading]="loadingServicios()" [searchable]="true" />
+            }
+            }
+        </div>
+    </div>
+    }
+</div>
