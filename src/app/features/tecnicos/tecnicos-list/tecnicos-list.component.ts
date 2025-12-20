@@ -31,8 +31,8 @@ export class TecnicosListComponent {
   columns: DataTableColumn[] = [
     { key: 'idTecnico', label: 'ID', sortable: true, width: 'w-1 whitespace-nowrap' },
     { key: 'nombre', label: 'Nombre', sortable: true },
-    { key: 'email', label: 'Email', sortable: true },
-    { key: 'telefono', label: 'Teléfono', sortable: false, width: 'whitespace-nowrap' },
+    { key: 'email', label: 'Email', sortable: true, hideOnMobile: true },
+    { key: 'telefono', label: 'Teléfono', sortable: false, width: 'whitespace-nowrap', hideOnMobile: true },
     { key: 'especialidad', label: 'Especialidad', sortable: true },
     {
       key: 'activo',

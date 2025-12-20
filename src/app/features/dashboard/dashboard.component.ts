@@ -8,8 +8,6 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
-import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2-charts';
-import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 
 import { ServiciosService } from '../servicios/servicios.service';
 import { TecnicosService } from '../tecnicos/tecnicos.service';
@@ -18,8 +16,8 @@ import { ClientesService } from '../clientes/clientes.service';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FullCalendarModule, BaseChartDirective],
-  providers: [provideCharts(withDefaultRegisterables())],
+  imports: [CommonModule, FullCalendarModule],
+  providers: [],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -41,33 +39,14 @@ export class DashboardComponent implements OnInit {
 
   // Calendar Events
   calendarEvents = signal<any[]>([]);
+  allServices: any[] = []; // Store all services for lookup
 
-  // Chart Data: Status Doughnut
-  public statusChartOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'right' }
-    }
-  };
-  public statusChartType: ChartType = 'doughnut';
-  public statusChartData = signal<ChartData<'doughnut'>>({
-    labels: ['Pendiente', 'En Proceso', 'Completado', 'Cancelado'],
-    datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#ef4444'] }]
-  });
+  // Modal State
+  showServiceModal = signal(false);
+  selectedService = signal<any>(null);
 
-  // Chart Data: Services Trend (Simple Mock for now, or real if we process dates)
-  public trendChartOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
-  };
-  public trendChartType: ChartType = 'bar';
-  public trendChartData = signal<ChartData<'bar'>>({
-    labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-    datasets: [{ data: [0, 0, 0, 0, 0, 0, 0], backgroundColor: '#f97316', borderRadius: 4 }]
-  });
+  // Toggle for Calendar
+  showCalendar = signal(false);
 
   // Calendar Options
   calendarOptions: CalendarOptions = {
@@ -116,9 +95,10 @@ export class DashboardComponent implements OnInit {
   }
 
   processServiceData(services: any[]): void {
+    this.allServices = services;
+
     // Stats
     const pending = services.filter(s => s.estado === 'Pendiente').length;
-    const process = services.filter(s => s.estado === 'En Proceso').length;
     const completed = services.filter(s => s.estado === 'Completado').length;
     const cancelled = services.filter(s => s.estado === 'Cancelado').length;
     const incomplete = services.filter(s => s.estado === 'Incompleto').length;
@@ -126,41 +106,6 @@ export class DashboardComponent implements OnInit {
     this.totalServices.set(services.length);
     this.pendingServices.set(pending);
     this.completedServices.set(completed);
-
-    // Update Status Chart
-    this.statusChartData.set({
-      labels: ['Pendiente', 'En Proceso', 'Completado', 'Cancelado/Incompleto'],
-      datasets: [{
-        data: [pending, process, completed, cancelled + incomplete],
-        backgroundColor: ['#fbbf24', '#3b82f6', '#10b981', '#ef4444'],
-        hoverBackgroundColor: ['#f59e0b', '#2563eb', '#059669', '#dc2626'],
-        borderWidth: 0
-      }]
-    });
-
-    // Update Trend Chart (Mock logic: distribute services randomly across days for demo feel, 
-    // real logic would need date grouping)
-    // For now, let's just count services by day of week if we have dates
-    const days = [0, 0, 0, 0, 0, 0, 0]; // Sun-Sat
-    services.forEach(s => {
-      const date = new Date(s.fechaServicio);
-      if (!isNaN(date.getTime())) {
-        days[date.getDay()]++;
-      }
-    });
-    // Rotate to start Mon (index 1) -> Sun (index 0)
-    const rotatedDays = [...days.slice(1), days[0]];
-
-    this.trendChartData.set({
-      labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-      datasets: [{
-        data: rotatedDays,
-        label: 'Servicios',
-        backgroundColor: '#f97316',
-        borderRadius: 4,
-        barThickness: 20
-      }]
-    });
 
 
     // Recent Services (Last 5)
@@ -170,25 +115,33 @@ export class DashboardComponent implements OnInit {
     );
     this.recentServices.set(sorted.slice(0, 5));
 
-    // Calendar Events
-    const events = services.map(s => {
-      let color = '#3788d8'; // Default blue
-      if (s.estado === 'Pendiente') color = '#f59e0b'; // Amber/Yellow
-      if (s.estado === 'Completado') color = '#10b981'; // Green
-      if (s.estado === 'Cancelado') color = '#ef4444'; // Red
-      if (s.estado === 'Incompleto') color = '#f97316'; // Orange
+    // Calendar Events - Filter today onwards
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-      return {
-        id: s.idServicio.toString(),
-        title: `${s.folio} - ${s.cliente?.nombre || 'Cliente'}`,
-        start: s.fechaServicio, // Assuming 'YYYY-MM-DD' or ISO string
-        color: color,
-        extendedProps: {
-          estado: s.estado,
-          tecnico: s.tecnico?.nombre
-        }
-      };
-    });
+    const events = services
+      .filter(s => {
+        const serviceDate = new Date(s.fechaServicio);
+        return serviceDate >= today;
+      })
+      .map(s => {
+        let color = '#3788d8'; // Default blue
+        if (s.estado === 'Pendiente') color = '#f59e0b'; // Amber/Yellow
+        if (s.estado === 'Completado') color = '#10b981'; // Green
+        if (s.estado === 'Cancelado') color = '#ef4444'; // Red
+        if (s.estado === 'Incompleto') color = '#f97316'; // Orange
+
+        return {
+          id: s.idServicio.toString(),
+          title: `${s.folio} - ${s.cliente?.nombre || 'Cliente'}`,
+          start: s.fechaServicio, // Assuming 'YYYY-MM-DD' or ISO string
+          color: color,
+          extendedProps: {
+            estado: s.estado,
+            tecnico: s.tecnico?.nombre
+          }
+        };
+      });
 
     this.calendarEvents.set(events);
     // Update calendar options to reflect new events
@@ -209,7 +162,23 @@ export class DashboardComponent implements OnInit {
 
   handleEventClick(clickInfo: any) {
     const serviceId = clickInfo.event.id;
-    this.router.navigate(['/servicios', serviceId]);
+    const service = this.allServices.find(s => s.idServicio.toString() === serviceId);
+
+    if (service) {
+      this.selectedService.set(service);
+      this.showServiceModal.set(true);
+    }
+  }
+
+  closeModal() {
+    this.showServiceModal.set(false);
+    this.selectedService.set(null);
+  }
+
+  submitServiceDetails() {
+    if (this.selectedService()) {
+      this.router.navigate(['/servicios', this.selectedService().idServicio]);
+    }
   }
 
   // Quick Actions
@@ -222,7 +191,6 @@ export class DashboardComponent implements OnInit {
   }
 
   viewCalendar() {
-    // Scroll to calendar
-    document.getElementById('calendar-section')?.scrollIntoView({ behavior: 'smooth' });
+    this.showCalendar.update(v => !v);
   }
 }

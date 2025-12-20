@@ -119,8 +119,9 @@ export interface Servicio {
     descripcion?: string;
     detalleTrabajo?: string;
     folio: string;
-    estado: 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado';
+    estado: 'Pendiente' | 'Completado' | 'Cancelado';
     firma?: string;
+    firmaTecnico?: string;
     lastUserId?: number;
     cliente?: Cliente;
     sucursal?: Sucursal;

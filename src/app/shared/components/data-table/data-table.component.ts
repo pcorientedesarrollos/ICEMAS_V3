@@ -15,6 +15,7 @@ export interface DataTableColumn {
   hideOnMobile?: boolean; // Hide this column on small screens
   width?: string; // Specific width (e.g. '1px', '50px', 'w-1')
   maxWidth?: string; // Max width for column (e.g., '200px', '15rem')
+  iconOnly?: boolean; // If true, hides the text and only shows icon
 }
 
 export interface DataTableAction {
@@ -74,8 +75,7 @@ export interface DataTableAction {
                 <tr>
                   @for (column of columns(); track column.key) {
                     <th 
-                      [ngClass]="column.hideOnMobile ? 'px-2 py-1.5 text-left text-xs font-semibold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-600 transition-colors select-none hidden md:table-cell' : 'px-2 py-1.5 text-left text-xs font-semibold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-600 transition-colors select-none'"
-                      [class]="column.width || ''"
+                      [ngClass]="(column.hideOnMobile ? 'hidden md:table-cell ' : '') + (column.width || '') + ' px-2 py-1.5 text-left text-xs font-semibold text-white uppercase tracking-wider cursor-pointer hover:bg-primary-600 transition-colors select-none'"
                       (click)="column.sortable !== false ? onSort(column.key) : null"
                     >
                       <div class="flex items-center gap-2 group">
@@ -130,9 +130,8 @@ export interface DataTableAction {
                   @for (row of paginatedData(); track row) {
                     <tr class="hover:bg-primary-50/30 transition-colors group/row">
                       @for (column of columns(); track column.key) {
-                        <td [ngClass]="column.hideOnMobile ? 'px-2 py-1.5 hidden md:table-cell' : 'px-2 py-1.5'" 
-                            [style.maxWidth]="column.maxWidth || 'auto'"
-                            [class]="column.width || ''">
+                        <td [ngClass]="(column.hideOnMobile ? 'hidden md:table-cell ' : '') + (column.width || '') + ' px-2 py-1.5'" 
+                            [style.maxWidth]="column.maxWidth || 'auto'">
                           @if (column.type === 'badge') {
                             @let rawValue = getNestedValue(row, column.key);
                             @let displayValue = column.format ? column.format(rawValue) : rawValue;
@@ -145,10 +144,12 @@ export interface DataTableAction {
                               class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-md transition-colors"
                             >
                                 @if (column.icon) {
-                                  <span [innerHTML]="column.icon"></span>
-                                }
-                                {{ column.buttonText || getNestedValue(row, column.key) || 'Ver' }}
-                            </button>
+                                    <span [innerHTML]="column.icon"></span>
+                                  }
+                                  @if (!column.iconOnly) {
+                                    {{ column.buttonText || getNestedValue(row, column.key) || 'Ver' }}
+                                  }
+                              </button>
                           } @else {
                             @if (column.format) {
                               <span class="text-sm text-gray-700 block truncate" [innerHTML]="column.format(getNestedValue(row, column.key))"></span>
@@ -479,7 +480,7 @@ export class DataTableComponent {
     }
 
     // Blue statuses
-    if (['en progreso', 'en curso', 'en proceso', 'programado', 'info'].includes(stringValue)) {
+    if (['en progreso', 'en curso', 'programado', 'info'].includes(stringValue)) {
       return 'bg-blue-100 text-blue-700 border border-blue-200 text-blue-700';
     }
 

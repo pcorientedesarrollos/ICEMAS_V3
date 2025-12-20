@@ -3,7 +3,7 @@
     <div>
       <div class="flex items-center gap-3">
         <h1 class="text-2xl font-bold text-gray-900 tracking-tight">
-          {{ isEditMode() ? 'Editar Servicio' : 'Nueva Orden de Servicio' }}
+          {{ isEditMode() ? 'Editar servicio' : 'Nueva orden de servicio' }}
         </h1>
         @if (isEditMode()) {
         <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium border border-gray-200">
@@ -35,7 +35,7 @@
             </button>
           </div>
           <app-searchable-select [options]="clientes()" valueKey="idCliente" labelKey="nombre"
-            formControlName="idCliente" placeholder="Seleccionar Cliente..." (selectionChange)="onClienteChange()">
+            formControlName="idCliente" placeholder="Seleccionar cliente..." (selectionChange)="onClienteChange()">
           </app-searchable-select>
           @if (form.get('idCliente')?.touched && form.get('idCliente')?.errors?.['required']) {
           <p class="mt-1.5 text-sm text-red-500">El cliente es requerido</p>
@@ -55,7 +55,7 @@
             </button>
           </div>
           <app-searchable-select [options]="sucursales()" valueKey="idSucursal" labelKey="nombre"
-            formControlName="idSucursal" placeholder="Seleccionar Sucursal..." (selectionChange)="onSucursalChange()"
+            formControlName="idSucursal" placeholder="Seleccionar sucursal..." (selectionChange)="onSucursalChange()"
             [disabled]="sucursales().length === 0">
           </app-searchable-select>
           @if (form.get('idSucursal')?.touched && form.get('idSucursal')?.errors?.['required']) {
@@ -76,7 +76,7 @@
             </button>
           </div>
           <app-searchable-select [options]="equipos()" valueKey="idEquipo" labelKey="nombre" formControlName="idEquipo"
-            placeholder="Seleccionar Equipo..." [disabled]="equipos().length === 0">
+            placeholder="Seleccionar equipo..." [disabled]="equipos().length === 0">
           </app-searchable-select>
           @if (form.get('idEquipo')?.touched && form.get('idEquipo')?.errors?.['required']) {
           <p class="mt-1.5 text-sm text-red-500">El equipo es requerido</p>
@@ -88,10 +88,10 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Tipo Servicio -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Servicio <span
+          <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de servicio <span
               class="text-red-500">*</span></label>
           <app-searchable-select [options]="tiposServicio()" valueKey="idTipoServicio" labelKey="nombre"
-            formControlName="idTipoServicio" placeholder="Seleccionar Tipo...">
+            formControlName="idTipoServicio" placeholder="Seleccionar tipo...">
           </app-searchable-select>
           @if (form.get('idTipoServicio')?.touched && form.get('idTipoServicio')?.errors?.['required']) {
           <p class="mt-1.5 text-sm text-red-500">Requerido</p>
@@ -103,7 +103,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">Técnico <span
               class="text-red-500">*</span></label>
           <app-searchable-select [options]="tecnicos()" valueKey="idTecnico" labelKey="nombre"
-            formControlName="idTecnico" placeholder="Seleccionar Técnico...">
+            formControlName="idTecnico" placeholder="Seleccionar técnico...">
           </app-searchable-select>
           @if (form.get('idTecnico')?.touched && form.get('idTecnico')?.errors?.['required']) {
           <p class="mt-1.5 text-sm text-red-500">Requerido</p>
@@ -127,39 +127,49 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">
             Estado <span class="text-red-500">*</span>
           </label>
-          <app-searchable-select [options]="['Pendiente', 'En Proceso', 'Completado', 'Cancelado']"
-            formControlName="estado" placeholder="Seleccionar...">
+          <app-searchable-select [options]="['Pendiente', 'Completado', 'Cancelado']" formControlName="estado"
+            placeholder="Seleccionar...">
           </app-searchable-select>
         </div>
       </div>
 
-      <div>
-        <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-2">
-          Descripción del Problema
-        </label>
-        <textarea id="descripcion" formControlName="descripcion" rows="3"
-          class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all text-gray-700 resize-none"
-          placeholder="Descripción del problema reportado..."></textarea>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-2">
+            Descripción del problema
+          </label>
+          <textarea id="descripcion" formControlName="descripcion" rows="4"
+            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all text-gray-700 resize-none"
+            placeholder="Descripción del problema reportado..."></textarea>
+        </div>
+
+        <div>
+          <label for="detalleTrabajo" class="block text-sm font-medium text-gray-700 mb-2">
+            Detalle del trabajo realizado
+          </label>
+          <textarea id="detalleTrabajo" formControlName="detalleTrabajo" rows="4"
+            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all text-gray-700 resize-none"
+            placeholder="Detalle del trabajo realizado por el técnico..."></textarea>
+        </div>
       </div>
 
-      <div>
-        <label for="detalleTrabajo" class="block text-sm font-medium text-gray-700 mb-2">
-          Detalle del Trabajo Realizado
-        </label>
-        <textarea id="detalleTrabajo" formControlName="detalleTrabajo" rows="4"
-          class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all text-gray-700 resize-none"
-          placeholder="Detalle del trabajo realizado por el técnico..."></textarea>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Firma del cliente</h3>
+          <app-signature-pad label="Firma de conformidad" [required]="false" [showSaveButton]="true"
+            [savedSignature]="signatureData()" (signatureSaved)="onSignatureSaved($event)"
+            (signatureCleared)="onSignatureCleared()" />
+        </div>
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Firma del técnico</h3>
+          <app-signature-pad label="Firma del técnico" [required]="false" [showSaveButton]="true"
+            [savedSignature]="technicianSignatureData()" (signatureSaved)="onTechnicianSignatureSaved($event)"
+            (signatureCleared)="onTechnicianSignatureCleared()" />
+        </div>
       </div>
 
       <div class="pt-4 border-t border-gray-100">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Firma del Cliente</h3>
-        <app-signature-pad label="Firma de Conformidad" [required]="false" [showSaveButton]="true"
-          [savedSignature]="signatureData()" (signatureSaved)="onSignatureSaved($event)"
-          (signatureCleared)="onSignatureCleared()" />
-      </div>
-
-      <div class="pt-4 border-t border-gray-100">
-        <app-photo-capture title="Fotos del Servicio" [useCamera]="true" [maxPhotos]="10"
+        <app-photo-capture title="Fotos del servicio" [useCamera]="true" [maxPhotos]="10"
           [initialPhotos]="servicePhotos()" (photosChanged)="onPhotosChanged($event)"
           (photoAdded)="onPhotoAdded($event)" (photoRemoved)="onPhotoRemoved($event)" />
       </div>

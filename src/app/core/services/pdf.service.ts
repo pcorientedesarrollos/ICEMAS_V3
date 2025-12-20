@@ -30,6 +30,7 @@ export interface ServiceOrderData {
     descripcion?: string;
     detalleTrabajo?: string;
     firmaCliente?: string;
+    firmaTecnico?: string;
     fotos?: { url: string; tipo: 'antes' | 'despues' }[];
 }
 
@@ -99,8 +100,11 @@ export class PdfService {
         this.drawFooter(doc, pageWidth, pageHeight, margin);
 
         // Save the PDF
+        // Save the PDF
         const filename = `orden_servicio_${data.folio.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-        doc.save(filename);
+        // doc.save(filename);
+        // Preview instead of download
+        window.open(doc.output('bloburl'), '_blank');
     }
 
     private drawHeader(doc: jsPDF, data: ServiceOrderData, margin: number, yPos: number, pageWidth: number, logoData: string): number {
@@ -359,46 +363,69 @@ export class PdfService {
 
     private drawSignature(doc: jsPDF, data: ServiceOrderData, margin: number, yPos: number, pageWidth: number, pageHeight: number): number {
         // Check if we need a new page
-        if (yPos > pageHeight - 60) {
+        // Need about 40mm for signatures
+        if (yPos + 40 > pageHeight - 15) {
             doc.addPage();
             yPos = 20;
         }
 
+        const col1 = margin;
+        // Adjust second column start to be at the center plus some padding or simply half page
+        const col2 = pageWidth / 2 + 10;
+        const sigWidth = 60;
+        const sigHeight = 25;
+
+        // --- TECHNICIAN SIGNATURE (Left) ---
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
+        doc.setFontSize(10);
         doc.setTextColor(245, 166, 35); // Brand Orange
-        doc.text('FIRMA DEL CLIENTE', margin, yPos);
+        doc.text('FIRMA DEL TÉCNICO', col1, yPos);
 
-        yPos += 8;
-        doc.setDrawColor(229, 231, 235);
-        doc.line(margin, yPos - 2, pageWidth - margin, yPos - 2);
+        // Draw Line
+        doc.setDrawColor(31, 41, 55);
+        doc.line(col1, yPos + sigHeight + 10, col1 + sigWidth, yPos + sigHeight + 10); // Line below signature area
 
-        if (data.firmaCliente) {
+        if (data.firmaTecnico) {
             try {
                 // Draw signature image
-                const sigWidth = 60;
-                const sigHeight = 25;
-                doc.addImage(data.firmaCliente, 'PNG', margin, yPos + 2, sigWidth, sigHeight);
-                yPos += sigHeight + 8;
-
-                // Signature line
-                doc.setDrawColor(31, 41, 55);
-                doc.line(margin, yPos, margin + sigWidth, yPos);
-                yPos += 4;
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(8);
-                doc.setTextColor(107, 114, 128);
-                doc.text('Firma de Conformidad', margin + sigWidth / 2, yPos, { align: 'center' });
+                doc.addImage(data.firmaTecnico, 'PNG', col1, yPos + 2, sigWidth, sigHeight);
             } catch (e) {
-                // If image fails, just show placeholder
-                yPos += 5;
-                doc.setFont('helvetica', 'italic');
-                doc.setFontSize(10);
-                doc.text('[Firma digital capturada]', margin, yPos);
+                // Ignore
             }
         }
 
-        return yPos + 10;
+        // Label
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(107, 114, 128); // Gray 500
+        doc.text('Firma del Técnico', col1 + sigWidth / 2, yPos + sigHeight + 14, { align: 'center' });
+
+
+        // --- CLIENT SIGNATURE (Right) ---
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(245, 166, 35); // Brand Orange
+        doc.text('FIRMA DEL CLIENTE', col2, yPos);
+
+        // Draw Line
+        doc.setDrawColor(31, 41, 55);
+        doc.line(col2, yPos + sigHeight + 10, col2 + sigWidth, yPos + sigHeight + 10);
+
+        if (data.firmaCliente) {
+            try {
+                doc.addImage(data.firmaCliente, 'PNG', col2, yPos + 2, sigWidth, sigHeight);
+            } catch (e) {
+                // Ignore
+            }
+        }
+
+        // Label
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(107, 114, 128);
+        doc.text('Firma de Conformidad', col2 + sigWidth / 2, yPos + sigHeight + 14, { align: 'center' });
+
+        return yPos + sigHeight + 25;
     }
 
     private drawPhotos(doc: jsPDF, data: ServiceOrderData, margin: number, yPos: number, pageWidth: number, pageHeight: number): number {
@@ -494,7 +521,7 @@ export class PdfService {
         switch (status.toLowerCase()) {
             case 'completado':
                 return { r: 16, g: 185, b: 129 }; // Green
-            case 'en proceso':
+
                 return { r: 59, g: 130, b: 246 }; // Blue
             case 'pendiente':
                 return { r: 245, g: 158, b: 11 }; // Amber

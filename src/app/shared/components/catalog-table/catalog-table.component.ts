@@ -16,6 +16,7 @@ export interface CatalogTableColumn {
   hideOnMobile?: boolean; // Hide this column on small screens
   width?: string; // Specific width (e.g. '1px', '50px', 'w-1')
   maxWidth?: string; // Max width for column (e.g., '200px', '15rem')
+  iconOnly?: boolean; // If true, hides the text and only shows icon
 }
 
 export interface CatalogTableAction {
@@ -151,7 +152,9 @@ export interface CatalogTableAction {
                                 @if (column.icon) {
                                   <span [innerHTML]="getSafeHtml(column.icon)"></span>
                                 }
-                                {{ column.buttonText || getNestedValue(row, column.key) || 'Ver' }}
+                                @if (!column.iconOnly) {
+                                  {{ column.buttonText || getNestedValue(row, column.key) || 'Ver' }}
+                                }
                             </button>
                           } @else {
                             @if (column.format) {
@@ -475,7 +478,7 @@ export class CatalogTableComponent {
     if (['pendiente', 'en espera', 'procesando', 'warning'].includes(stringValue)) {
       return 'bg-amber-100 text-amber-700 border border-amber-200';
     }
-    if (['en progreso', 'en curso', 'en proceso', 'programado', 'info'].includes(stringValue)) {
+    if (['en progreso', 'en curso', 'programado'].includes(stringValue)) {
       return 'bg-primary-100 text-primary-700 border border-primary-200';
     }
     return 'bg-gray-100 text-gray-700 border border-gray-200';

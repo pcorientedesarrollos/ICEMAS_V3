@@ -49,6 +49,10 @@ export class ServiciosService {
         return this.api.post(`servicios/${id}/firma`, { signature });
     }
 
+    saveTechnicianSignature(id: number, signature: string): Observable<any> {
+        return this.api.post(`servicios/${id}/firma-tecnico`, { signature });
+    }
+
     autocompleteId(term: string): Observable<any[]> {
         return this.api.get<any[]>('servicios/autocomplete/id', { term });
     }

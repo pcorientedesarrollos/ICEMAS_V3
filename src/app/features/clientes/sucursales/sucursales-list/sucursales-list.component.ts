@@ -28,9 +28,9 @@ export class SucursalesListComponent {
     columns: DataTableColumn[] = [
         { key: 'idSucursal', label: 'ID', sortable: true },
         { key: 'nombre', label: 'Nombre', sortable: true },
-        { key: 'direccion', label: 'Dirección', sortable: false },
-        { key: 'telefono', label: 'Teléfono', sortable: false },
-        { key: 'contacto', label: 'Contacto', sortable: false },
+        { key: 'direccion', label: 'Dirección', sortable: false, hideOnMobile: true },
+        { key: 'telefono', label: 'Teléfono', sortable: false, hideOnMobile: true },
+        { key: 'contacto', label: 'Contacto', sortable: false, hideOnMobile: true },
     ];
 
     actions: DataTableAction[] = [

@@ -58,7 +58,7 @@ export class ReportesSelectorComponent {
       format: (value: string) => {
         const badges: Record<string, string> = {
           'Pendiente': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">Pendiente</span>',
-          'En Proceso': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-primary-100 text-primary-800">En Proceso</span>',
+
           'Completado': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Completado</span>',
           'Cancelado': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Cancelado</span>'
         };
@@ -213,11 +213,11 @@ export class ReportesSelectorComponent {
     });
   }
 
-  getStatsByEstado(): { pendiente: number; enProceso: number; completado: number; cancelado: number } {
+  getStatsByEstado(): { pendiente: number; completado: number; cancelado: number } {
     const data = this.reportData();
     return {
       pendiente: data.filter(s => s.estado === 'Pendiente').length,
-      enProceso: data.filter(s => s.estado === 'En Proceso').length,
+
       completado: data.filter(s => s.estado === 'Completado').length,
       cancelado: data.filter(s => s.estado === 'Cancelado').length
     };
@@ -330,13 +330,13 @@ export class ReportesSelectorComponent {
       doc.text(`Completados: ${stats.completado}`, 20, 75);
 
       doc.setTextColor(245, 166, 35); // Orange (Primary)
-      doc.text(`En Proceso: ${stats.enProceso}`, 80, 75);
+
 
       doc.setTextColor(234, 179, 8); // Yellow/Amber
-      doc.text(`Pendientes: ${stats.pendiente}`, 140, 75);
+      doc.text(`Pendientes: ${stats.pendiente}`, 80, 75);
 
       doc.setTextColor(239, 68, 68); // Red
-      doc.text(`Cancelados: ${stats.cancelado}`, 200, 75, { align: 'right' }); // Adjust position if needed or keep inline
+      doc.text(`Cancelados: ${stats.cancelado}`, 140, 75);
 
       // Table header
       let y = 90;

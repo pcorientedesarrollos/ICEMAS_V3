@@ -32,7 +32,7 @@ export class ServiciosListComponent {
     { key: 'idServicio', label: 'ID', sortable: true, hideOnMobile: true, width: 'w-1 whitespace-nowrap' },
     { key: 'folio', label: 'Folio', sortable: true, width: 'whitespace-nowrap' },
     { key: 'fechaServicio', label: 'Fecha', sortable: true, format: (value) => new Date(value).toLocaleDateString('es-MX'), width: 'whitespace-nowrap' },
-    { key: 'cliente.nombre', label: 'Cliente', sortable: false, maxWidth: '150px' },
+    { key: 'cliente.nombre', label: 'Cliente', sortable: false, maxWidth: '150px', hideOnMobile: true },
     { key: 'equipo.nombre', label: 'Equipo', sortable: false, hideOnMobile: true, maxWidth: '250px' },
     { key: 'tecnico.nombre', label: 'Técnico', sortable: false, hideOnMobile: true, maxWidth: '150px' },
     {
