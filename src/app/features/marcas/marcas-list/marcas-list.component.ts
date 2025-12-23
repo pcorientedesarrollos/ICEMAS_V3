@@ -25,7 +25,7 @@ export class MarcasListComponent implements OnInit {
 
     columns: CatalogTableColumn[] = [
         { key: 'idMarca', label: 'ID', sortable: true, width: 'w-1 whitespace-nowrap' },
-        { key: 'descripcion', label: 'Nombre', sortable: true }
+        { key: 'nombre', label: 'Nombre', sortable: true }
     ];
 
     actions: CatalogTableAction[] = [

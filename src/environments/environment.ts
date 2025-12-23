@@ -1,6 +1,6 @@
 export const environment = {
-    production: true,
-    apiUrl: 'https://api.icemas.com/api',
+    production: false,
+    apiUrl: 'http://localhost:3005/api',
     apiTimeout: 30000,
     jwtTokenKey: 'icemas_access_token',
 };
