@@ -49,6 +49,11 @@ export class ReportesSelectorComponent {
   // Selected cliente object (for PDF metadata)
   selectedCliente = signal<any | null>(null);
 
+  // Equipment report filters
+  selectedClienteForEquipo = signal<number | null>(null);
+  equipoSucursales = signal<any[]>([]);
+  selectedSucursalForEquipo = signal<number | null>(null);
+
   // Date filters
   fechaInicio = signal<string>('');
   fechaFin = signal<string>('');
@@ -141,6 +146,72 @@ export class ReportesSelectorComponent {
         this.clienteSucursales.set([]);
       }
     });
+  }
+
+  onClienteForEquipoChange(value: any): void {
+    const clienteId = value ? Number(value) : null;
+    this.selectedClienteForEquipo.set(clienteId);
+    this.selectedSucursalForEquipo.set(null);
+    this.selectedEntityId.set(null);
+
+    if (clienteId) {
+      // Load branches for this client
+      this.clientesService.getSucursales(clienteId).subscribe({
+        next: (data) => {
+          this.equipoSucursales.set(data);
+        },
+        error: () => {
+          this.notificationService.error('Error al cargar sucursales');
+          this.equipoSucursales.set([]);
+        }
+      });
+
+      // Load all equipment for this client
+      this.clientesService.getEquipos(clienteId).subscribe({
+        next: (data) => {
+          this.equipos.set(data);
+        },
+        error: () => {
+          this.notificationService.error('Error al cargar equipos');
+          this.equipos.set([]);
+        }
+      });
+    } else {
+      this.equipoSucursales.set([]);
+      this.equipos.set([]);
+    }
+  }
+
+  onSucursalForEquipoChange(value: any): void {
+    const sucursalId = value ? Number(value) : null;
+    this.selectedSucursalForEquipo.set(sucursalId);
+    this.selectedEntityId.set(null);
+
+    const clienteId = this.selectedClienteForEquipo();
+    if (clienteId) {
+      if (sucursalId) {
+        // Filter equipment by branch
+        this.clientesService.getEquipos(clienteId).subscribe({
+          next: (allEquipos) => {
+            const filtered = allEquipos.filter((eq: any) => eq.sucursal?.idSucursal === sucursalId);
+            this.equipos.set(filtered);
+          },
+          error: () => {
+            this.notificationService.error('Error al filtrar equipos');
+          }
+        });
+      } else {
+        // Show all equipment for the client
+        this.clientesService.getEquipos(clienteId).subscribe({
+          next: (data) => {
+            this.equipos.set(data);
+          },
+          error: () => {
+            this.notificationService.error('Error al cargar equipos');
+          }
+        });
+      }
+    }
   }
 
   onFechaInicioChange(value: string): void {
@@ -513,5 +584,142 @@ export class ReportesSelectorComponent {
     this.reportData.set([]);
     this.reportGenerated.set(false);
     this.setDefaultDates();
+
+    // Clear equipment report filters
+    this.selectedClienteForEquipo.set(null);
+    this.equipoSucursales.set([]);
+    this.selectedSucursalForEquipo.set(null);
+  }
+
+  async generateEquipoReportFromTable(row: any): Promise<void> {
+    const equipo = row.equipo || (row.equiposAsignados && row.equiposAsignados[0]?.equipo);
+
+    if (!equipo) {
+      this.notificationService.warning('No se pudo identificar el equipo');
+      return;
+    }
+
+    this.loading.set(true);
+
+    try {
+      const [{ jsPDF }, { loadLogoAsBase64 }] = await Promise.all([
+        import('jspdf'),
+        import('../../../core/utils/logo-loader')
+      ]);
+
+      const logoBase64 = await loadLogoAsBase64();
+      const doc = new jsPDF({ orientation: 'landscape' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const icemasBlue = [30, 58, 138];
+
+      if (logoBase64) {
+        try {
+          doc.addImage(logoBase64, 'PNG', 15, 12, 45, 20);
+        } catch (e) {
+          console.log('Error adding logo:', e);
+        }
+      }
+
+      doc.setFontSize(16);
+      doc.setFont('Helvetica', 'bold');
+      doc.setTextColor(icemasBlue[0], icemasBlue[1], icemasBlue[2]);
+      doc.text('ICEMAS EQUIPOS S.A. DE C.V.', pageWidth / 2, 22, { align: 'center' });
+
+      doc.setDrawColor(icemasBlue[0], icemasBlue[1], icemasBlue[2]);
+      doc.setLineWidth(1.5);
+      doc.line(15, 42, pageWidth - 15, 42);
+
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Reporte de Servicio', pageWidth / 2, 50, { align: 'center' });
+
+      const today = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      doc.setFontSize(10);
+      doc.text(`Fecha: ${today}`, pageWidth / 2, 57, { align: 'center' });
+
+      let y = 67;
+      doc.setFont('Helvetica', 'bold');
+      doc.text('Folio:', 20, y);
+      doc.setFont('Helvetica', 'normal');
+      doc.text(row.folio || '', 45, y);
+
+      y += 6;
+      doc.setFont('Helvetica', 'bold');
+      doc.text('Equipo:', 20, y);
+      doc.setFont('Helvetica', 'normal');
+      doc.text(equipo.nombre || '', 45, y);
+
+      y += 6;
+      doc.setFont('Helvetica', 'bold');
+      doc.text('Serie:', 20, y);
+      doc.setFont('Helvetica', 'normal');
+      doc.text(equipo.numeroSerie || '', 45, y);
+
+      y += 6;
+      doc.setFont('Helvetica', 'bold');
+      doc.text('Marca:', 20, y);
+      doc.setFont('Helvetica', 'normal');
+      doc.text(equipo.marca?.nombre || '', 45, y);
+
+      y += 6;
+      doc.setFont('Helvetica', 'bold');
+      doc.text('Cliente:', 20, y);
+      doc.setFont('Helvetica', 'normal');
+      doc.text(row.cliente?.nombre || '', 45, y);
+
+      y += 6;
+      doc.setFont('Helvetica', 'bold');
+      doc.text('Sucursal:', 20, y);
+      doc.setFont('Helvetica', 'normal');
+      doc.text(row.sucursal?.nombre || '', 45, y);
+
+      y += 6;
+      doc.setFont('Helvetica', 'bold');
+      doc.text('Tipo de Servicio:', 20, y);
+      doc.setFont('Helvetica', 'normal');
+      doc.text(row.tipoServicio?.nombre || '', 60, y);
+
+      y += 6;
+      doc.setFont('Helvetica', 'bold');
+      doc.text('Fecha de Servicio:', 20, y);
+      doc.setFont('Helvetica', 'normal');
+      const fechaServicio = row.fechaServicio ? new Date(row.fechaServicio).toLocaleDateString('es-MX') : 'N/A';
+      doc.text(fechaServicio, 60, y);
+
+      y += 6;
+      doc.setFont('Helvetica', 'bold');
+      doc.text('Técnico:', 20, y);
+      doc.setFont('Helvetica', 'normal');
+      doc.text(row.tecnico?.nombre || '', 45, y);
+
+      y += 6;
+      doc.setFont('Helvetica', 'bold');
+      doc.text('Estado:', 20, y);
+      doc.setFont(' Helvetica', 'normal');
+      const estado = row.estado || '';
+      if (estado === 'Completado') {
+        doc.setTextColor(0, 128, 0);
+      } else if (estado === 'Pendiente') {
+        doc.setTextColor(200, 150, 0);
+      } else if (estado === 'En Proceso') {
+        doc.setTextColor(0, 0, 255);
+      }
+      doc.text(estado, 45, y);
+      doc.setTextColor(0, 0, 0);
+
+      // Footer
+      const footerY = pageHeight - 10;
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Reporte generado el ${today}`, pageWidth / 2, footerY, { align: 'center' });
+
+      doc.save(`Servicio_${row.folio}_${equipo.nombre}_${new Date().toISOString().split('T')[0]}.pdf`);
+      this.notificationService.success('Reporte generado correctamente');
+      this.loading.set(false);
+    } catch (error) {
+      this.notificationService.error('Error al generar el reporte');
+      this.loading.set(false);
+    }
   }
 }

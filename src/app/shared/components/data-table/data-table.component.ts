@@ -8,7 +8,7 @@ export interface DataTableColumn {
   sortable?: boolean;
   type?: 'text' | 'number' | 'date' | 'badge' | 'button';
   badgeColors?: { [key: string]: string };
-  format?: (value: any) => string;
+  format?: (value: any, row?: any) => string;
   action?: (row: any) => void;
   icon?: string; // Optional icon for button
   buttonText?: string; // Optional text for button override
@@ -135,14 +135,14 @@ export interface DataTableAction {
                             [style.maxWidth]="column.maxWidth || 'auto'">
                           @if (column.type === 'badge') {
                             @let rawValue = getNestedValue(row, column.key);
-                            @let displayValue = column.format ? column.format(rawValue) : rawValue;
+                            @let displayValue = column.format ? column.format(rawValue, row) : rawValue;
                             <span [class]="'px-2.5 py-0.5 rounded-md text-xs font-medium whitespace-nowrap ' + getBadgeColor(displayValue, column.badgeColors)">
                               {{ displayValue }}
                             </span>
                           } @else if (column.type === 'button') {
-                            <button 
+                            <button
                               (click)="column.action && column.action(row)"
-                              [class]="column.buttonStyle === 'circle' 
+                              [class]="column.buttonStyle === 'circle'
                                 ? 'flex items-center justify-center w-8 h-8 text-xs font-bold text-primary-700 bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-full transition-colors'
                                 : 'inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-md transition-colors'"
                             >
@@ -150,12 +150,12 @@ export interface DataTableAction {
                                     <span [innerHTML]="column.icon"></span>
                                   }
                                   @if (!column.iconOnly) {
-                                    {{ column.buttonText || (column.format ? column.format(getNestedValue(row, column.key)) : getNestedValue(row, column.key)) || 'Ver' }}
+                                    {{ column.buttonText || (column.format ? column.format(getNestedValue(row, column.key), row) : getNestedValue(row, column.key)) || 'Ver' }}
                                   }
                               </button>
                           } @else {
                             @if (column.format) {
-                              <span class="text-sm text-gray-700 block truncate" [innerHTML]="column.format(getNestedValue(row, column.key))"></span>
+                              <span class="text-sm text-gray-700 block truncate" [innerHTML]="column.format(getNestedValue(row, column.key), row)"></span>
                             } @else {
                               <span class="text-sm text-gray-700 block truncate" [title]="getNestedValue(row, column.key)">{{ getNestedValue(row, column.key) }}</span>
                             }

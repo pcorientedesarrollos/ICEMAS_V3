@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { ClientesService } from '../clientes.service';
 import { DataTableComponent, DataTableColumn, DataTableAction } from '../../../shared/components/data-table/data-table.component';
@@ -19,6 +19,7 @@ export class ClientesListComponent {
   private clientesService = inject(ClientesService);
   private router = inject(Router);
   private notificationService = inject(NotificationService);
+  private location = inject(Location);
 
   clientes = signal<any[]>([]);
   loading = signal(true);
@@ -167,5 +168,9 @@ export class ClientesListComponent {
     this.showSucursalesModal.set(false);
     this.selectedClienteForSucursales.set(null);
     this.sucursalesData.set([]);
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

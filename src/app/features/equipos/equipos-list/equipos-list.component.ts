@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, OnInit, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { EquiposService } from '../equipos.service';
@@ -21,6 +21,7 @@ export class EquiposListComponent implements OnInit {
   private clientesService = inject(ClientesService);
   private router = inject(Router);
   private notificationService = inject(NotificationService);
+  private location = inject(Location);
 
   equipos = signal<any[]>([]);
   loading = signal(true);
@@ -235,5 +236,9 @@ export class EquiposListComponent implements OnInit {
       this.selectedSucursal.set(Number(value));
     }
     this.loadEquipos();
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

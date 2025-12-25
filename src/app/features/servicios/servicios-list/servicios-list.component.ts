@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ServiciosService } from '../servicios.service';
@@ -21,6 +21,7 @@ export class ServiciosListComponent {
   private clientesService = inject(ClientesService);
   private router = inject(Router);
   private notificationService = inject(NotificationService);
+  private location = inject(Location);
 
   servicios = signal<any[]>([]);
   loading = signal(true);
@@ -325,5 +326,9 @@ export class ServiciosListComponent {
     return this.servicios().filter(s =>
       s.estado?.toLowerCase().trim() === estado.toLowerCase().trim()
     ).length;
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }
