@@ -426,7 +426,7 @@ export class ReportesSelectorComponent {
           // Logo: 45x20 pixels (wider, less tall for better proportions)
           doc.addImage(logoBase64, 'PNG', 15, 12, 45, 20);
         } catch (e) {
-          console.log('Error adding logo:', e);
+          // Silent fail for logo loading
         }
       }
 
@@ -617,7 +617,7 @@ export class ReportesSelectorComponent {
         try {
           doc.addImage(logoBase64, 'PNG', 15, 12, 45, 20);
         } catch (e) {
-          console.log('Error adding logo:', e);
+          // Silent fail for logo loading
         }
       }
 

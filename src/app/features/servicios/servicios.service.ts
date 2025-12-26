@@ -83,4 +83,8 @@ export class ServiciosService {
     getPhotos(servicioId: number): Observable<any[]> {
         return this.api.get<any[]>(`servicios/${servicioId}/fotos`);
     }
+
+    sendPdf(servicioId: number): Observable<{ message: string; email: string }> {
+        return this.api.post<{ message: string; email: string }>(`servicios/${servicioId}/send-pdf`, {});
+    }
 }

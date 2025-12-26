@@ -4,6 +4,7 @@ export interface Cliente {
     nombre: string;
     empresa: string;
     telefono?: string;
+    email?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -12,6 +13,7 @@ export interface CreateClienteDto {
     nombre: string;
     empresa: string;
     telefono?: string;
+    email?: string;
 }
 
 // Sucursal interfaces

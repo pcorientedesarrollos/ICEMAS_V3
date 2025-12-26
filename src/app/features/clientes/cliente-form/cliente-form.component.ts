@@ -36,6 +36,7 @@ export class ClienteFormComponent implements OnInit {
     ],
     empresa: ['', Validators.required],
     telefono: [''],
+    email: ['', [Validators.email]],
     sucursales: this.fb.array([]) // FormArray for dynamic sucursales
   });
 
@@ -58,7 +59,8 @@ export class ClienteFormComponent implements OnInit {
         this.form.patchValue({
           nombre: cliente.nombre,
           empresa: cliente.empresa,
-          telefono: cliente.telefono || ''
+          telefono: cliente.telefono || '',
+          email: cliente.email || ''
         });
         // Note: We are not loading existing sucursales into the array for edit mode
         // as per the requirement to add them when *creating* (or adding new ones).
@@ -96,7 +98,8 @@ export class ClienteFormComponent implements OnInit {
     const clienteData = {
       nombre: formValue.nombre,
       empresa: formValue.empresa,
-      telefono: formValue.telefono
+      telefono: formValue.telefono,
+      email: formValue.email
     };
     const sucursalesData = formValue.sucursales || [];
 

@@ -49,8 +49,6 @@ export class MainLayoutComponent {
     const user = this.authService.currentUser();
     const isAdmin = this.authService.isAdmin();
 
-    console.log('🔍 Menu Debug:', { user, isAdmin, role: user?.role });
-
     if (isAdmin) {
       items.push({
         label: 'Ajustes',

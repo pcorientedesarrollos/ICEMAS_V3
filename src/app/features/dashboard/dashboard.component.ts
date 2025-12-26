@@ -1,5 +1,5 @@
-import { Component, inject, signal, OnInit, DestroyRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, signal, OnInit, DestroyRef, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FullCalendarModule } from '@fullcalendar/angular';
@@ -26,6 +26,8 @@ export class DashboardComponent implements OnInit {
   private serviciosService = inject(ServiciosService);
   private tecnicosService = inject(TecnicosService);
   private destroyRef = inject(DestroyRef);
+  private platformId = inject(PLATFORM_ID);
+  private isBrowser = isPlatformBrowser(this.platformId);
 
   // Signals for stats
   totalServices = signal(0);
@@ -70,7 +72,10 @@ export class DashboardComponent implements OnInit {
   };
 
   ngOnInit(): void {
-    this.loadDashboardData();
+    // Only load data in browser, not during SSR
+    if (this.isBrowser) {
+      this.loadDashboardData();
+    }
   }
 
   loadDashboardData(): void {
@@ -199,7 +204,6 @@ export class DashboardComponent implements OnInit {
           if (service) {
             service.fechaServicio = formattedDate;
           }
-          console.log(`✅ Servicio ${serviceId} actualizado a ${formattedDate}`);
         },
         error: () => {
           // Revert the event to its original date

@@ -1,4 +1,5 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { ApiService } from './api.service';
@@ -39,20 +40,30 @@ export interface User {
 export class AuthService {
     private api = inject(ApiService);
     private router = inject(Router);
+    private platformId = inject(PLATFORM_ID);
+    private isBrowser = isPlatformBrowser(this.platformId);
 
     isAuthenticated = signal(false);
     currentUser = signal<User | null>(null);
 
     constructor() {
-        this.checkAuthStatus();
+        // Only check auth in browser, not during SSR
+        if (this.isBrowser) {
+            this.checkAuthStatus();
+        }
     }
 
     private checkAuthStatus(): void {
         const token = this.getToken();
-        if (token) {
+        const savedUser = this.getSavedUser();
+
+        if (token && savedUser) {
+            // Restore from localStorage
             this.isAuthenticated.set(true);
-            // Optionally load user profile
-            this.loadUserProfile();
+            this.currentUser.set(savedUser);
+        } else if (token) {
+            // Token exists but no user data - clear orphaned token
+            this.removeToken();
         }
     }
 
@@ -60,6 +71,7 @@ export class AuthService {
         return this.api.post<AuthResponse>('auth/login', credentials).pipe(
             tap(response => {
                 this.saveToken(response.access_token);
+                this.saveUser(response.user);
                 this.currentUser.set(response.user);
                 this.isAuthenticated.set(true);
                 this.router.navigate(['/dashboard']);
@@ -73,27 +85,54 @@ export class AuthService {
 
     logout(): void {
         this.removeToken();
+        this.removeUser();
         this.isAuthenticated.set(false);
         this.currentUser.set(null);
         this.router.navigate(['/login']);
     }
 
     getToken(): string | null {
-        if (typeof window !== 'undefined') {
+        if (this.isBrowser) {
             return localStorage.getItem(environment.jwtTokenKey);
         }
         return null;
     }
 
     private saveToken(token: string): void {
-        if (typeof window !== 'undefined') {
+        if (this.isBrowser) {
             localStorage.setItem(environment.jwtTokenKey, token);
         }
     }
 
     private removeToken(): void {
-        if (typeof window !== 'undefined') {
+        if (this.isBrowser) {
             localStorage.removeItem(environment.jwtTokenKey);
+        }
+    }
+
+    private saveUser(user: User): void {
+        if (this.isBrowser) {
+            localStorage.setItem('current_user', JSON.stringify(user));
+        }
+    }
+
+    private getSavedUser(): User | null {
+        if (this.isBrowser) {
+            const userData = localStorage.getItem('current_user');
+            if (userData) {
+                try {
+                    return JSON.parse(userData);
+                } catch {
+                    return null;
+                }
+            }
+        }
+        return null;
+    }
+
+    private removeUser(): void {
+        if (this.isBrowser) {
+            localStorage.removeItem('current_user');
         }
     }
 
@@ -101,9 +140,11 @@ export class AuthService {
         this.api.get<User>('auth/profile').subscribe({
             next: (user) => {
                 this.currentUser.set(user);
+                this.saveUser(user); // Update saved user
             },
             error: () => {
-                this.logout();
+                // Silently fail - user data from localStorage is still valid
+                // Only explicit logout will clear the session
             }
         });
     }

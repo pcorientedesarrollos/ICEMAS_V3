@@ -159,11 +159,7 @@ export class ServiciosListComponent {
   loadServicios(): void {
     this.loading.set(true);
 
-    console.log('🔍 loadServicios called');
-    console.log('🔍 selectedCliente:', this.selectedCliente());
-    console.log('🔍 selectedSucursal:', this.selectedSucursal());
-    console.log('🔍 selectedYear:', this.selectedYear());
-    console.log('🔍 selectedMonth:', this.selectedMonth());
+
 
     // Calculate dates based on year and month
     const year = this.selectedYear();
@@ -199,11 +195,11 @@ export class ServiciosListComponent {
       filters.search = this.searchTerm();
     }
 
-    console.log('🔍 Backend filters:', filters);
+
 
     this.serviciosService.getAll(filters).subscribe({
       next: (data) => {
-        console.log('🔍 Data received from backend:', data.length, 'servicios');
+
         // Apply additional frontend filters
         let filteredData = data.map(s => {
           // Process equipment names and series for display
@@ -221,20 +217,16 @@ export class ServiciosListComponent {
         // Filter by Cliente
         if (this.selectedCliente() !== 'all') {
           const clienteId = Number(this.selectedCliente());
-          console.log('🔍 Filtering by clienteId:', clienteId);
           filteredData = filteredData.filter(s => s.cliente?.idCliente === clienteId);
-          console.log('🔍 After cliente filter:', filteredData.length);
         }
 
         // Filter by Sucursal
         if (this.selectedSucursal() !== 'all') {
           const sucursalId = Number(this.selectedSucursal());
-          console.log('🔍 Filtering by sucursalId:', sucursalId);
           filteredData = filteredData.filter(s => s.sucursal?.idSucursal === sucursalId);
-          console.log('🔍 After sucursal filter:', filteredData.length);
         }
 
-        console.log('🔍 Final filtered data:', filteredData.length);
+
         this.servicios.set(filteredData);
         this.loading.set(false);
       },
@@ -272,28 +264,28 @@ export class ServiciosListComponent {
   }
 
   onClienteChange(value: any): void {
-    console.log('🔍 onClienteChange called with value:', value, 'type:', typeof value);
+
     // CRITICAL FIX: Don't convert 'all' to Number (becomes NaN)
     if (value === 'all' || value === null || value === undefined) {
       this.selectedCliente.set('all');
     } else {
       this.selectedCliente.set(Number(value));
     }
-    console.log('🔍 selectedCliente set to:', this.selectedCliente());
+
     // The cascading effect will handle loading sucursales
     // Manually trigger data load
     this.loadServicios();
   }
 
   onSucursalChange(value: any): void {
-    console.log('🔍 onSucursalChange called with value:', value, 'type:', typeof value);
+
     // CRITICAL FIX: Don't convert 'all' to Number (becomes NaN)
     if (value === 'all' || value === null || value === undefined) {
       this.selectedSucursal.set('all');
     } else {
       this.selectedSucursal.set(Number(value));
     }
-    console.log('🔍 selectedSucursal set to:', this.selectedSucursal());
+
     this.loadServicios();
   }
 

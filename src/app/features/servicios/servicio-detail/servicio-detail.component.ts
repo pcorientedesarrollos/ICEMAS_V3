@@ -137,4 +137,33 @@ export class ServicioDetailComponent implements OnInit {
     this.showPdfPreview.set(false);
     this.pdfUrl.set(null);
   }
+
+  sendPdfByEmail(): void {
+    const s = this.servicio();
+    if (!s) return;
+
+    // Validar que el cliente tenga email
+    if (!s.cliente?.email) {
+      this.notificationService.error('El cliente no tiene un email registrado');
+      return;
+    }
+
+    // Confirmar envío
+    if (!confirm(`¿Enviar PDF al email: ${s.cliente.email}?`)) {
+      return;
+    }
+
+    this.generatingPdf.set(true);
+    this.serviciosService.sendPdf(this.servicioId!).subscribe({
+      next: (response) => {
+        this.notificationService.success(`PDF enviado exitosamente a ${response.email}`);
+        this.generatingPdf.set(false);
+      },
+      error: (error) => {
+        const message = error.error?.message || 'Error al enviar el PDF';
+        this.notificationService.error(message);
+        this.generatingPdf.set(false);
+      }
+    });
+  }
 }
