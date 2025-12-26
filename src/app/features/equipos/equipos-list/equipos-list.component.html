@@ -96,7 +96,7 @@
   </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<!-- Delete Confirmation Modal (no servicios) -->
 <app-modal [isOpen]="showDeleteModal()" (close)="showDeleteModal.set(false)" title="Confirmar eliminación">
   <div class="p-6">
     <p class="text-gray-600 mb-6">¿Estás seguro que deseas eliminar el equipo <strong>{{ selectedEquipo()?.nombre
@@ -113,3 +113,8 @@
     </div>
   </div>
 </app-modal>
+
+<!-- Confirm Delete Modal (with servicios asociados) -->
+<app-equipo-delete-confirm-modal [isOpen]="showConfirmModal()" [equipoNombre]="selectedEquipo()?.nombre || ''"
+  [serviciosAsociados]="serviciosAsociados()" (confirmed)="confirmForceDelete()" (cancelled)="cancelConfirmModal()">
+</app-equipo-delete-confirm-modal>

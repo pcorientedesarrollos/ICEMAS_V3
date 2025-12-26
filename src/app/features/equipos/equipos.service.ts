@@ -25,8 +25,9 @@ export class EquiposService {
         return this.api.put<Equipo>(`equipos/${id}`, data);
     }
 
-    delete(id: number): Observable<{ message: string }> {
-        return this.api.delete<{ message: string }>(`equipos/${id}`);
+    delete(id: number, force: boolean = false): Observable<{ message: string; serviciosEliminados?: number }> {
+        const params = force ? { force: 'true' } : {};
+        return this.api.delete<{ message: string; serviciosEliminados?: number }>(`equipos/${id}`, params);
     }
 
     getPorSucursal(idSucursal: number): Observable<Equipo[]> {
@@ -35,6 +36,10 @@ export class EquiposService {
 
     getServicios(id: number): Observable<any[]> {
         return this.api.get<any[]>(`equipos/${id}/servicios`);
+    }
+
+    getServiciosAsociados(id: number): Observable<{ count: number; servicios: any[] }> {
+        return this.api.get<{ count: number; servicios: any[] }>(`equipos/${id}/servicios-asociados`);
     }
 
     // Marcas

@@ -1,0 +1,79 @@
+<div *ngIf="isOpen" class="modal-backdrop" (click)="onCancel()">
+    <div class="modal-dialog modal-lg" (click)="$event.stopPropagation()">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" (click)="onCancel()"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    <strong>¡Atención!</strong> Estás a punto de eliminar el equipo:
+                    <strong class="d-block mt-2">{{ equipoNombre }}</strong>
+                </div>
+
+                <div class="alert alert-danger">
+                    <i class="bi bi-trash me-2"></i>
+                    Este equipo tiene <strong>{{ serviciosAsociados.length }} servicio(s) asociado(s)</strong>.
+                    <br>
+                    <strong>Si continúas, todos estos servicios también serán eliminados permanentemente.</strong>
+                </div>
+
+                <!-- Services Table -->
+                <div class="servicios-container">
+                    <h6 class="mb-3">Servicios que serán eliminados:</h6>
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Folio</th>
+                                    <th>Fecha</th>
+                                    <th>Cliente</th>
+                                    <th>Sucursal</th>
+                                    <th>Técnico</th>
+                                    <th class="text-center">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let servicio of serviciosAsociados">
+                                    <td>
+                                        <strong>{{ servicio.folio }}</strong>
+                                    </td>
+                                    <td>
+                                        {{ servicio.fechaServicio | date: 'dd/MM/yyyy' }}
+                                    </td>
+                                    <td>{{ servicio.cliente }}</td>
+                                    <td>{{ servicio.sucursal }}</td>
+                                    <td>{{ servicio.tecnico }}</td>
+                                    <td class="text-center">
+                                        <span class="badge" [ngClass]="getEstadoBadgeClass(servicio.estado)">
+                                            {{ servicio.estado }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="onCancel()">
+                    <i class="bi bi-x-circle me-1"></i>
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" (click)="onConfirm()">
+                    <i class="bi bi-trash me-1"></i>
+                    Eliminar de todas formas
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

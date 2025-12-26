@@ -22,8 +22,8 @@ export class ApiService {
         return this.http.put<T>(`${this.baseUrl}/${endpoint}`, data);
     }
 
-    delete<T>(endpoint: string): Observable<T> {
-        return this.http.delete<T>(`${this.baseUrl}/${endpoint}`);
+    delete<T>(endpoint: string, params?: any): Observable<T> {
+        return this.http.delete<T>(`${this.baseUrl}/${endpoint}`, { params });
     }
 
     patch<T>(endpoint: string, data: any): Observable<T> {

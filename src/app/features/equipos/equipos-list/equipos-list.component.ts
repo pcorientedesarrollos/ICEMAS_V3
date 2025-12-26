@@ -8,11 +8,12 @@ import { DataTableComponent, DataTableColumn, DataTableAction } from '../../../s
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { NotificationService } from '../../../core/services/notification.service';
 import { SearchableSelectComponent } from '../../../shared/components/searchable-select/searchable-select.component';
+import { EquipoDeleteConfirmModalComponent } from '../../../shared/components/equipo-delete-confirm-modal/equipo-delete-confirm-modal.component';
 
 @Component({
   selector: 'app-equipos-list',
   standalone: true,
-  imports: [CommonModule, DataTableComponent, ModalComponent, FormsModule, SearchableSelectComponent],
+  imports: [CommonModule, DataTableComponent, ModalComponent, FormsModule, SearchableSelectComponent, EquipoDeleteConfirmModalComponent],
   templateUrl: './equipos-list.component.html',
   styleUrl: './equipos-list.component.css'
 })
@@ -27,6 +28,11 @@ export class EquiposListComponent implements OnInit {
   loading = signal(true);
   showDeleteModal = signal(false);
   selectedEquipo = signal<any>(null);
+
+  // New modal states
+  showConfirmModal = signal(false);
+  serviciosAsociados = signal<any[]>([]);
+  loadingServicios = signal(false);
 
   // Filters
   searchTerm = signal('');
@@ -188,13 +194,34 @@ export class EquiposListComponent implements OnInit {
 
   openDeleteModal(equipo: any): void {
     this.selectedEquipo.set(equipo);
-    this.showDeleteModal.set(true);
+    this.loadingServicios.set(true);
+    this.showConfirmModal.set(true);
+
+    // Load associated servicios
+    this.equiposService.getServiciosAsociados(equipo.idEquipo).subscribe({
+      next: (response) => {
+        this.serviciosAsociados.set(response.servicios);
+        this.loadingServicios.set(false);
+
+        // If no servicios, show normal delete modal
+        if (response.count === 0) {
+          this.showConfirmModal.set(false);
+          this.showDeleteModal.set(true);
+        }
+      },
+      error: () => {
+        this.notificationService.error('Error al cargar servicios asociados');
+        this.showConfirmModal.set(false);
+        this.loadingServicios.set(false);
+      }
+    });
   }
 
   confirmDelete(): void {
     const id = this.selectedEquipo()?.idEquipo;
     if (!id) return;
 
+    // Normal delete (no servicios asociados)
     this.equiposService.delete(id).subscribe({
       next: () => {
         this.notificationService.success('Equipo eliminado correctamente');
@@ -206,6 +233,32 @@ export class EquiposListComponent implements OnInit {
         this.showDeleteModal.set(false);
       }
     });
+  }
+
+  confirmForceDelete(): void {
+    const id = this.selectedEquipo()?.idEquipo;
+    if (!id) return;
+
+    // Force delete (with servicios asociados)
+    this.equiposService.delete(id, true).subscribe({
+      next: (response) => {
+        const count = response.serviciosEliminados || 0;
+        this.notificationService.success(
+          `Equipo eliminado correctamente. Se eliminaron ${count} servicio(s) asociado(s).`
+        );
+        this.showConfirmModal.set(false);
+        this.loadEquipos();
+      },
+      error: (error) => {
+        this.notificationService.error('Error al eliminar equipo: ' + (error.error?.message || error.message));
+        this.showConfirmModal.set(false);
+      }
+    });
+  }
+
+  cancelConfirmModal(): void {
+    this.showConfirmModal.set(false);
+    this.serviciosAsociados.set([]);
   }
 
   getCountByEstado(statusCheck: string): number {
